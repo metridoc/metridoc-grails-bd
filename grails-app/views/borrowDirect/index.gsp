@@ -2,7 +2,6 @@
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
 <%@page import="metridoc.penn.bd.Library"%>
-<%@page import="metridoc.penn.bd.BibliographyItem"%>
 <%@ page contentType="text/html;charset=ISO-8859-1"%>
 <g:set var="currentYear" value="${Calendar.getInstance().get(Calendar.YEAR)}" />
 <g:set var="dataDumpCommand" value="${request.dataDumpCommand != null? request.dataDumpCommand:new DataDumpCommand()}" />
