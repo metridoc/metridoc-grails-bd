@@ -13,7 +13,7 @@ queries{
 			bl.publication_year as publicationYear,
 			bl.isbn,
 			bl.lccn,
-			/*bl.oclc,*/
+			bl.oclc,
 			bl.call_number as callNumber,
 			bl.supplier_code as supplierCode,
 			IF(lower(bl.supplier_code) = 'list exhausted', 1, 0) as isUnfilled,
@@ -48,5 +48,41 @@ queries{
 			group by bl.borrower, bl.call_number, bl.publication_year, bl.isbn, isUnfilled, bl.title 
 			having count(bl.request_number) >= ?
 		'''
+		countsPerLibrary = '''
+			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? group by {lib_role} WITH ROLLUP;
+		'''
+		countsPerLibraryFilled = '''
+			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? and lower(supplier_code) != 'list exhausted' group by {lib_role} WITH ROLLUP;
+		'''
+		turnaroundPerLibrary = '''
+		select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, ship_date)) as turnaroundShpRec, 
+		AVG(DATEDIFF(ship_date, request_date))as turnaroundReqShp, 
+		AVG(DATEDIFF(process_date, request_date)) as turnaroundReqRec
+		from 
+			(select bl.request_number, 
+					bl.{lib_role}, 
+					bl.request_date, 
+					bl.process_date, 
+					min(bshl.ship_rec_date) as ship_date
+			from  bd_bibliography_load bl 
+			left join bd_ship_rec_date_load bshl on bl.request_number = bshl.request_number 
+			where request_date between ? and ? 
+			group by bl.request_number ) sub_data
+			group by {lib_role} WITH ROLLUP
+		'''
 	}
 }
+//select borrower, count(*), AVG(DATEDIFF(process_date, request_date)) from bd_bibliography_load where request_date between '2001-01-01' and '2011-05-05' group by borrower;
+//select request_number, process_date, request_date, DATEDIFF(process_date, request_date) from  bd_bibliography_load;
+
+
+//
+//select request_date, process_date, ship_date, DATEDIFF(process_date, ship_date), 
+//DATEDIFF(ship_date, request_date) , DATEDIFF(process_date, request_date) from 
+//(select bl.request_number, bl.request_date, bl.process_date, min(bshl.ship_rec_date) as ship_date
+//		from  bd_bibliography_load bl left join bd_ship_rec_date_load bshl on bl.request_number = bshl.request_number group by bl.request_number ) a
+
+
+
+borrowdirect.db.column.borrower = 'borrower'
+borrowdirect.db.column.lender = 'lender'

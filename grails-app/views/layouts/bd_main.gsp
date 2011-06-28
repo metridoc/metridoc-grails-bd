@@ -17,10 +17,11 @@
 <body>
 	<table class="mainContainer">
 		<tr class="header">
-			<td width="500" bgcolor="#CC0000"><g:link action=""><span>Borrow
+			<!-- 500 -->
+			<td width="70%" bgcolor="#CC0000"><g:link action=""><span>Borrow
 					Direct Data Repository</span></g:link>
-			</td>
-			<td width="250" bgcolor="#333366" align="center"><span>
+			</td><!-- 250 -->
+			<td width="30%" bgcolor="#333366" align="center"><span>
 					Penn Library DATA FARM</span>
 			</td>
 

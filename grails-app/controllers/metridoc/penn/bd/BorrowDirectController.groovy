@@ -1,5 +1,7 @@
 package metridoc.penn.bd
 
+import metridoc.penn.util.DateUtil;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
@@ -17,8 +19,8 @@ class BorrowDirectController {
 	def data_dump = { DataDumpCommand cmd ->
 		if(!cmd.hasErrors()){
 			def library_id = cmd.library				
-			def dateFrom = getDate(cmd.from_year, cmd.from_month, cmd.from_day, 0, 0, 0)
-			def dateTo = getDate(cmd.to_year, cmd.to_month, cmd.to_day, 23, 59, 59)
+			def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
+			def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
 			response.setHeader("Content-Disposition", "attachment;filename=\"my_library_dump.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
 			borrowDirectService.dumpDataLibrary(library_id, dateFrom, dateTo, response.outputStream)	
@@ -31,8 +33,8 @@ class BorrowDirectController {
 	
 	def data_dump_mult = { DataDumpMultCommand cmd ->
 		if(!cmd.hasErrors()){
-			def dateFrom = getDate(cmd.from_year, cmd.from_month, cmd.from_day, 0, 0, 0)
-			def dateTo = getDate(cmd.to_year, cmd.to_month, cmd.to_day, 23, 59, 59)
+			def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
+			def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
 						
 			response.setHeader("Content-Disposition", "attachment;filename=\"multiple_items.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
@@ -43,16 +45,13 @@ class BorrowDirectController {
 			render(view:'index', model:[])
 		}
 	}
-	
+	def summary = {
+		def model = [summaryData: borrowDirectService.getSummaryDashboardData()]
+		return model
+	}
 	def dashboard = { DashboardCommand cmd ->
 		//TODO:impl
-		println "hello"	
-	}
-	
-	private Date getDate(year, month, day, hourOfDay, minute, second){
-		def calendar = Calendar.getInstance()
-		calendar.set(year, month, day, hourOfDay, minute, second)
-		return new Date(calendar.getTimeInMillis())
+		println "hello"
 	}
 }
 

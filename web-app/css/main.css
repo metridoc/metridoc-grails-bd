@@ -149,7 +149,7 @@ td.errors textarea {
 
 table {
     border: 1px solid #ccc;
-    width: 100%
+   /* width: 100%*/
 }
 tr {
     border: 0;
@@ -161,7 +161,7 @@ td, th {
     vertical-align: top;
 }
 th {
-    background: #fff url(../images/skin/shadow.jpg);
+    /*background: #fff url(../images/skin/shadow.jpg);*/
     color: #666;
     font-size: 11px;
     font-weight: bold;
@@ -200,9 +200,10 @@ th.desc a {
 }
 .list th, .list td {
     border-left: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 .list th:hover, .list tr:hover {
-    background: #b2d1ff;
+    /*background: #b2d1ff;*/
 }
 
 /* PAGINATION */
@@ -286,7 +287,7 @@ th.desc a {
 
 /*App styles*/
 .mainContainer{
-	width:700px;
+	/*width:700px;*/
 	border:0;
 }
 .header TD{
@@ -315,4 +316,15 @@ th.desc a {
 
 .bd_body {
     margin: 0 15px;
+}
+
+.summary {
+	/*border-collapse:collapse;*/
+}
+.dataCell{
+	text-align: right;
+}
+.mainColHeader{
+	vertical-align: middle;
+	background-image:none;
 }

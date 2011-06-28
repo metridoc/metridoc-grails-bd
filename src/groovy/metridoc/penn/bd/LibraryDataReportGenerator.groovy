@@ -96,7 +96,7 @@ class LibraryDataReportGenerator {
 		//isbn
 		addCell(row, currentRowData.isbn);
 		//oclc
-		addCell(row, "");//currentRowData.oclc);
+		addCell(row, currentRowData.oclc);
 		//lccn
 		addCell(row, currentRowData.lccn);
 		//call number

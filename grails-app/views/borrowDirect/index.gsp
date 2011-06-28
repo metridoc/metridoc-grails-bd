@@ -101,7 +101,7 @@
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
-        <a href="http://datafarm.library.upenn.edu/bdez/BD.html">Current Year</a>               
+        <g:link action="summary">Current Year</g:link>               
         <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>
         </div>
         <hr/>
