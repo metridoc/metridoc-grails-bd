@@ -1,9 +1,12 @@
 package metridoc.penn.bd
 
+import edu.upennlib.collmanagement.CallNoService;
+import edu.upennlib.collmanagement.CallNoService.CallNoCounts;
 import groovy.sql.GroovyResultSetExtension;
 import groovy.sql.Sql;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
@@ -36,13 +39,52 @@ class BorrowDirectService {
 	def getSummaryDashboardData(){
 		Sql sql = new Sql(dataSource);
 		def result = [:]
-		getDataPerLibrary(sql, true, result);
-		getDataPerLibrary(sql, false, result);
-		log.info(result)
+		
+		def currentDate = Calendar.getInstance();
+		def currentYear = currentDate.get(Calendar.YEAR);
+		def currentMonth = currentDate.get(Calendar.MONTH);
+		def currentFiscalYear = DateUtil.getFiscalYear(currentYear, currentMonth)
+		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
+		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
+		
+		def dates = [:]
+		dates.currentFiscalYear = [currentFiscalYearStart, currentFiscalYearEnd];
+		
+		dates.lastFiscalYear = [DateUtil.getFiscalYearStartDate(currentFiscalYear - 1),
+			 DateUtil.getFiscalYearEndDate(currentFiscalYear - 1)]
+		
+		dates.currentMonth = [ DateUtil.getDateStartOfDay(currentYear, currentMonth, 1),
+							   DateUtil.getDateEndOfDay(currentYear, currentMonth, 
+										 currentDate.get(Calendar.DAY_OF_MONTH))]
+		
+		dates.lastYearMonth = [ DateUtil.getDateStartOfDay(currentYear - 1, currentMonth, 1),
+								DateUtil.getDateEndOfDay(currentYear - 1, currentMonth,
+										 currentDate.get(Calendar.DAY_OF_MONTH))]
+		
+		getDataPerLibrary(sql, true, result, dates);
+		getDataPerLibrary(sql, false, result, dates);
+		log.debug(result)
 		return result
 	}
 	
-	def getDataPerLibrary(sql, isBorrow, result){
+	def getRequestedCallNoCounts(){
+		def currentDate = Calendar.getInstance();
+		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
+		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
+		
+		Sql sql = new Sql(dataSource);
+		CallNoCounts counts;
+		def sqlParams = [currentFiscalYearStart, currentFiscalYearEnd]
+		def query = config.queries.borrowdirect.requestedCallNos
+		log.debug("Runnig query for callnos: " + query + "\n params="+sqlParams)
+		ResultSet resultSet = sql.query(query, sqlParams, {
+			counts = CallNoService.getCounts(it)
+		})
+		return counts
+	}
+	
+	def getDataPerLibrary(sql, isBorrow, result, dates){
 		def libRoleColumn; 
 		def keyForSection;
 		if(isBorrow){
@@ -52,23 +94,19 @@ class BorrowDirectService {
 			libRoleColumn = config.borrowdirect.db.column.lender
 			keyForSection = 'lending'
 		}
-		def currentDate = Calendar.getInstance();
-		def currentYear = currentDate.get(Calendar.YEAR);
-		def currentMonth = currentDate.get(Calendar.MONTH);
-		def currentFiscalYear = DateUtil.getFiscalYear(currentYear, currentMonth)
-		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
-		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
 		
 		def query = getQueryWithRole(config.queries.borrowdirect.countsPerLibrary, libRoleColumn)
 		def filledQuery = getQueryWithRole(config.queries.borrowdirect.countsPerLibraryFilled, libRoleColumn)
 		//currentFiscalYear
-		def sqlParams = [currentFiscalYearStart, currentFiscalYearEnd]
+		def sqlParams = dates.currentFiscalYear
+		log.debug("Runnig query for currentFiscalYear: " + query + " params="+sqlParams)
 		sql.eachRow(query, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0), result)
 			libData.get(keyForSection).currentFiscalYear = it.requestsNum
 		})
 		//turnaround
 		def turnaroundQuery = getQueryWithRole(config.queries.borrowdirect.turnaroundPerLibrary, libRoleColumn)
+		log.debug("Runnig query for turnaround: " + turnaroundQuery + " params="+sqlParams)
 		sql.eachRow(turnaroundQuery, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0).longValue(), result)
 			def currentMap = libData.get(keyForSection)
@@ -79,6 +117,7 @@ class BorrowDirectService {
 	
 		if(isBorrow){
 			//borrowing:yearFillRate
+			log.debug("Runnig query for yearFillRate: " + filledQuery + " params="+sqlParams)
 			sql.eachRow(filledQuery, 
 				sqlParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
@@ -88,20 +127,16 @@ class BorrowDirectService {
 			})
 		}
 		//lastFiscalYear
-		sqlParams = [DateUtil.getFiscalYearStartDate(currentFiscalYear - 1),
-			 DateUtil.getFiscalYearEndDate(currentFiscalYear - 1)]
+		sqlParams = dates.lastFiscalYear 
+		log.debug("Runnig query for lastFiscalYear: " + query+ " params="+sqlParams)
 		sql.eachRow(query, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0), result)
 			libData.get(keyForSection).lastFiscalYear = it.requestsNum
 		})
 		
 		//currentMonth
-		def dateFrom =  DateUtil.getDateStartOfDay(currentYear, currentMonth, 1);
-									 
-		def dateTo = DateUtil.getDateEndOfDay(currentYear, currentMonth, 
-										 currentDate.get(Calendar.DAY_OF_MONTH));
-		
-		sqlParams = [dateFrom, dateTo]
+		sqlParams = dates.currentMonth
+		log.debug("Runnig query for currentMonth: " + query+ " params="+sqlParams)
 		sql.eachRow(query, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0), result)
 			libData.get(keyForSection).currentMonth = it.requestsNum
@@ -109,6 +144,7 @@ class BorrowDirectService {
 		
 		if(isBorrow){
 		//borrowing:monthFillRate
+			log.debug("Runnig query for monthFillRate: " + filledQuery+ " params="+sqlParams)
 			sql.eachRow(filledQuery, sqlParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
@@ -117,16 +153,13 @@ class BorrowDirectService {
 			})
 		}
 		//lastYearMonth
-		dateFrom =  DateUtil.getDateStartOfDay(currentYear - 1, currentMonth, 1);
-									 
-		dateTo = DateUtil.getDateEndOfDay(currentYear - 1, currentMonth,
-										 currentDate.get(Calendar.DAY_OF_MONTH));
-		
-		sqlParams = [dateFrom, dateTo]
+		sqlParams = dates.lastYearMonth
+		log.debug("Runnig query for lastYearMonth: " + query + " params="+sqlParams)
 		sql.eachRow(query, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0), result)
 			libData.get(keyForSection).lastYearMonth = it.requestsNum
 		})
+		log.debug("Done for " + keyForSection)
 		return result
 	}
 	

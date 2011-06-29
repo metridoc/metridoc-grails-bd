@@ -77,7 +77,7 @@ log4j = {
     // appender:
     //
     appenders {
-        console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
+        console name:'stdout', layout:pattern(conversionPattern: '%d %c{2} %m%n')
     }
 
     error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
@@ -94,5 +94,5 @@ log4j = {
 
     warn   'org.mortbay.log'
 	
-	debug  'org.hibernate.SQL', 'org.codehaus.groovy.grails.app.service'
+	debug  'org.hibernate.SQL', 'grails.app.service'
 }

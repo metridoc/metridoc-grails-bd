@@ -27,12 +27,19 @@
 
 		</tr>
     <tr>
-      <td align="center" colspan="2"><a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>
+      <td align="center" colspan="2">
+       <g:if test="${reportName==null}">
+      <a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>
       &nbsp;|&nbsp;&nbsp;
       <g:link action="lost_password">Lost Your Password?</g:link>
       &nbsp;&nbsp;|&nbsp;&nbsp;
       <g:link action="notes">Notes</g:link>
+      </g:if>
+      <g:else>
+      	${reportName}
+      </g:else>
       </td>
+      
     </tr>
     <tr>
     <td colspan="2">

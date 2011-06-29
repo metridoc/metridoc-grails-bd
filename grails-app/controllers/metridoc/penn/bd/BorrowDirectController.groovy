@@ -1,5 +1,8 @@
 package metridoc.penn.bd
 
+import edu.upennlib.collmanagement.BucketService;
+import edu.upennlib.collmanagement.CallNoService.CallNoCounts;
+
 import metridoc.penn.util.DateUtil;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -46,9 +49,24 @@ class BorrowDirectController {
 		}
 	}
 	def summary = {
-		def model = [summaryData: borrowDirectService.getSummaryDashboardData()]
+		def currentDate = Calendar.getInstance();
+		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		
+		def model = [summaryData: borrowDirectService.getSummaryDashboardData(), 
+					reportName:"Summary for fiscal year " + currentFiscalYear]
 		return model
 	}
+	
+	def lc_report = {
+		def currentDate = Calendar.getInstance();
+		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts()
+		return [callNoCounts:counts!=null?counts.getCountPerBucket():[:], 
+			    callNoCountPerType:counts!=null?counts.getCountPerType():[:],
+				bucketItems: BucketService.getInstance().getBucketItems(), 
+				reportName:"LC report for fiscal year " + currentFiscalYear]
+	}
+	
 	def dashboard = { DashboardCommand cmd ->
 		//TODO:impl
 		println "hello"

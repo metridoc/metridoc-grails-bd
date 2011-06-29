@@ -35,6 +35,6 @@ class DateUtil {
 	
 	private static Date getFiscalYearEndDate(int fiscalYear){
 		def endMonth =  FY_START_MONTH - 1;
-		return getDateStartOfDay(fiscalYear, endMonth, getLastDayOfMonth(fiscalYear, endMonth))
+		return getDateEndOfDay(fiscalYear, endMonth, getLastDayOfMonth(fiscalYear, endMonth))
 	}
 }

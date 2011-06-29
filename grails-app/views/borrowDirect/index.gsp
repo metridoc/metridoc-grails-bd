@@ -4,6 +4,7 @@
 <%@page import="metridoc.penn.bd.Library"%>
 <%@ page contentType="text/html;charset=ISO-8859-1"%>
 <g:set var="currentYear" value="${Calendar.getInstance().get(Calendar.YEAR)}" />
+<g:set var="libraries" value="${Library.list()}" />
 <g:set var="dataDumpCommand" value="${request.dataDumpCommand != null? request.dataDumpCommand:new DataDumpCommand()}" />
 <g:set var="dataDumpMultCommand" value="${request.dataDumpMultCommand != null? request.dataDumpMultCommand:new DataDumpMultCommand()}" />
 <g:set var="dashboardCommand" value="${request.dashboardCommand != null? request.dashboardCommand: new DashboardCommand()}" />
@@ -38,7 +39,7 @@
 						</div>
 						<div class='formRow'>
 							Data For:
-							<g:select name="library" from="${Library.list()}" value="${dataDumpCommand.library}" optionKey="id"
+							<g:select name="library" from="${libraries}" value="${dataDumpCommand.library}" optionKey="id"
 									optionValue="catalogCodeDesc" /> 
 						</div>
 						<div class='formRow'>
@@ -107,7 +108,7 @@
         <hr/>
         <div  class="formRow">
        2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:
-        <a href="http://datafarm.library.upenn.edu/bdez/lcc/LCCBD.html">Current Year</a>
+        <g:link action="lc_report">Current Year</g:link>
 		<a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html">Historical</a> 
     	</div>
        </td>
@@ -120,7 +121,7 @@
     <td>
     <g:form name="form3" method="post" action="lib_data_summary">
 		<div class='formRow'>Select Your Library: 
-              <g:select name="library" from="${Library.list()}" value="" optionKey="id"
+              <g:select name="library" from="${libraries}" value="" optionKey="id"
 									optionValue="catalogCodeDesc" /> 
 				</div>					
 									<hr/>

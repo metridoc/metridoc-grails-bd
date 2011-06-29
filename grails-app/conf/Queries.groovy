@@ -70,6 +70,10 @@ queries{
 			group by bl.request_number ) sub_data
 			group by {lib_role} WITH ROLLUP
 		'''
+		
+		requestedCallNos = '''
+			select call_number from bd_bibliography_load where request_date between ? and ? and call_number is not null
+		'''
 	}
 }
 //select borrower, count(*), AVG(DATEDIFF(process_date, request_date)) from bd_bibliography_load where request_date between '2001-01-01' and '2011-05-05' group by borrower;
