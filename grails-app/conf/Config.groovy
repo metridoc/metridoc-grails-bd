@@ -78,6 +78,7 @@ log4j = {
     //
     appenders {
         console name:'stdout', layout:pattern(conversionPattern: '%d %c{2} %m%n')
+        'null' name:'stacktrace'
     }
 
     error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
