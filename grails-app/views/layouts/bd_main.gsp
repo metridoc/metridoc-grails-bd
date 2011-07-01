@@ -10,11 +10,7 @@
 <g:javascript library="application" />
 </head>
 <body>
-	<div id="spinner" class="spinner" style="display: none;">
-		<img src="${resource(dir:'images',file:'spinner.gif')}"
-			alt="${message(code:'spinner.alt',default:'Loading...')}" />
-	</div>
-<body>
+<div align="center">
 	<table class="mainContainer">
 		<tr class="header">
 			<!-- 500 -->
@@ -42,7 +38,7 @@
       
     </tr>
     <tr>
-    <td colspan="2">
+    <td colspan="2" align="center">
     	<g:layoutBody />
     </td>
     </tr>
@@ -50,5 +46,6 @@
           <td class="footer" colspan="2" align="center">University of Pennsylvania Library | Data Farm</td>
         </tr>
   </table>
+ </div>
 </body>
 </html>

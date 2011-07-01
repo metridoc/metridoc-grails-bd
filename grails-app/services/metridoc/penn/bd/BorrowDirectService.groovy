@@ -36,7 +36,7 @@ class BorrowDirectService {
 		runReport(reportGenerator,  config.queries.borrowdirect.dataDumpMultipleItems, [from, to, minTimes], outstream)
 	}
 	
-	def getSummaryDashboardData(){
+	def getSummaryDashboardData(libId){
 		Sql sql = new Sql(dataSource);
 		def result = [:]
 		
@@ -46,7 +46,7 @@ class BorrowDirectService {
 		def currentFiscalYear = DateUtil.getFiscalYear(currentYear, currentMonth)
 		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
 		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
-		
+	
 		def dates = [:]
 		dates.currentFiscalYear = [currentFiscalYearStart, currentFiscalYearEnd];
 		
@@ -61,13 +61,22 @@ class BorrowDirectService {
 								DateUtil.getDateEndOfDay(currentYear - 1, currentMonth,
 										 currentDate.get(Calendar.DAY_OF_MONTH))]
 		
-		getDataPerLibrary(sql, true, result, dates);
-		getDataPerLibrary(sql, false, result, dates);
+		loadDataPerLibrary(sql, true, result, dates, libId);
+		loadDataPerLibrary(sql, false, result, dates, libId);
+		if(libId != null){
+			loadPickupData(sql, result, dates.currentFiscalYear, libId)
+		}
 		log.debug(result)
 		return result
 	}
 	
-	def getRequestedCallNoCounts(){
+	def loadPickupData(sql, result, currentFiscalYearDates, libId){
+		def query = config.queries.borrowdirect.countsPerPickupLocations
+		def sqlParams = [currentFiscalYearDates[0], currentFiscalYearDates[1], libId]
+		result.pickupData = sql.rows(query, sqlParams)
+	}
+	
+	def getRequestedCallNoCounts(libId){
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
@@ -77,6 +86,9 @@ class BorrowDirectService {
 		CallNoCounts counts;
 		def sqlParams = [currentFiscalYearStart, currentFiscalYearEnd]
 		def query = config.queries.borrowdirect.requestedCallNos
+		if(libId != null){
+			query += " and " + config.borrowdirect.db.column.borrower + " = " + libId
+		}
 		log.debug("Runnig query for callnos: " + query + "\n params="+sqlParams)
 		ResultSet resultSet = sql.query(query, sqlParams, {
 			counts = CallNoService.getCounts(it)
@@ -84,19 +96,30 @@ class BorrowDirectService {
 		return counts
 	}
 	
-	def getDataPerLibrary(sql, isBorrow, result, dates){
+	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId){
 		def libRoleColumn; 
 		def keyForSection;
-		if(isBorrow){
-			libRoleColumn = config.borrowdirect.db.column.borrower
+		def additionalCondition = ""
+		if(isBorrowing){
+			if(libId != null){
+				additionalCondition = "and " + config.borrowdirect.db.column.borrower+"="+libId
+				libRoleColumn = config.borrowdirect.db.column.lender
+			}else{
+				libRoleColumn = config.borrowdirect.db.column.borrower
+			}
 			keyForSection = 'borrowing'
 		}else{
+		if(libId != null){
+			additionalCondition = "and " + config.borrowdirect.db.column.lender+"="+libId
+			libRoleColumn = config.borrowdirect.db.column.borrower
+		}else{
 			libRoleColumn = config.borrowdirect.db.column.lender
+		}
 			keyForSection = 'lending'
 		}
 		
-		def query = getQueryWithRole(config.queries.borrowdirect.countsPerLibrary, libRoleColumn)
-		def filledQuery = getQueryWithRole(config.queries.borrowdirect.countsPerLibraryFilled, libRoleColumn)
+		def query = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition)
+		def filledQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryFilled, libRoleColumn, additionalCondition)
 		//currentFiscalYear
 		def sqlParams = dates.currentFiscalYear
 		log.debug("Runnig query for currentFiscalYear: " + query + " params="+sqlParams)
@@ -105,7 +128,7 @@ class BorrowDirectService {
 			libData.get(keyForSection).currentFiscalYear = it.requestsNum
 		})
 		//turnaround
-		def turnaroundQuery = getQueryWithRole(config.queries.borrowdirect.turnaroundPerLibrary, libRoleColumn)
+		def turnaroundQuery = getAdjustedQuery(config.queries.borrowdirect.turnaroundPerLibrary, libRoleColumn, additionalCondition)
 		log.debug("Runnig query for turnaround: " + turnaroundQuery + " params="+sqlParams)
 		sql.eachRow(turnaroundQuery, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0).longValue(), result)
@@ -115,7 +138,7 @@ class BorrowDirectService {
 			currentMap.turnaroundShpRec = it.turnaroundShpRec
 		})
 	
-		if(isBorrow){
+		if(isBorrowing){
 			//borrowing:yearFillRate
 			log.debug("Runnig query for yearFillRate: " + filledQuery + " params="+sqlParams)
 			sql.eachRow(filledQuery, 
@@ -123,7 +146,7 @@ class BorrowDirectService {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
 				currentMap.yearFillRate = (currentMap.currentFiscalYear != 0? 
-				it.requestsNum /(float)currentMap.currentFiscalYear:0)
+				it.requestsNum /(float)currentMap.currentFiscalYear:1)
 			})
 		}
 		//lastFiscalYear
@@ -142,14 +165,14 @@ class BorrowDirectService {
 			libData.get(keyForSection).currentMonth = it.requestsNum
 		})
 		
-		if(isBorrow){
+		if(isBorrowing){
 		//borrowing:monthFillRate
 			log.debug("Runnig query for monthFillRate: " + filledQuery+ " params="+sqlParams)
 			sql.eachRow(filledQuery, sqlParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
 				currentMap.monthFillRate = (currentMap.currentMonth != 0?
-				it.requestsNum /(float)currentMap.currentMonth:0)
+				it.requestsNum /(float)currentMap.currentMonth:1)
 			})
 		}
 		//lastYearMonth
@@ -163,12 +186,14 @@ class BorrowDirectService {
 		return result
 	}
 	
-	private String getQueryWithRole(query, libRoleColumn){
-		return query.replaceAll("\\{lib_role\\}", libRoleColumn)
+	private String getAdjustedQuery(query, libRoleColumn, additionalCondition){
+		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)
+		result.replaceAll("\\{add_condition\\}", additionalCondition)
 	}
 	
 	private void runReport(reportGenerator, query, inputParams, outstream){
 		Sql sql = new Sql(dataSource);
+		log.debug("Runnig report query : " + query + "\n params="+inputParams)
 		sql.eachRow(query, inputParams, {
 			reportGenerator.addRowData(it)
 		})

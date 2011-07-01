@@ -1,4 +1,4 @@
-<%@page import="metridoc.penn.bd.DashboardCommand"%>
+<%@page import="metridoc.penn.bd.LibReportCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
 <%@page import="metridoc.penn.bd.Library"%>
@@ -7,7 +7,7 @@
 <g:set var="libraries" value="${Library.list()}" />
 <g:set var="dataDumpCommand" value="${request.dataDumpCommand != null? request.dataDumpCommand:new DataDumpCommand()}" />
 <g:set var="dataDumpMultCommand" value="${request.dataDumpMultCommand != null? request.dataDumpMultCommand:new DataDumpMultCommand()}" />
-<g:set var="dashboardCommand" value="${request.dashboardCommand != null? request.dashboardCommand: new DashboardCommand()}" />
+<g:set var="libReportCommand" value="${request.libReportCommand != null ? request.libReportCommand: new LibReportCommand()}" />
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
@@ -121,22 +121,25 @@
     <td>
     <g:form name="form3" method="post" action="lib_data_summary">
 		<div class='formRow'>Select Your Library: 
-              <g:select name="library" from="${libraries}" value="" optionKey="id"
+              <g:select name="library" from="${libraries}" value="${libReportCommand.library}" optionKey="id"
 									optionValue="catalogCodeDesc" /> 
 				</div>					
 									<hr/>
 		<div class='formRow'>
               1. Summary Dashboard [filled request, filled rate and turnaround times]:
-              <input name="myRpt" type="radio" value="0" checked="checked" /> Current Year 
+              <input name="reportType" type="radio" value="${LibReportCommand.SUMMARY}"     
+<%= libReportCommand.getReportType() == LibReportCommand.SUMMARY ? "checked=\"checked\"":"" %> /> Current Year 
       	</div>
         <hr/>       
 		<div class='formRow'>
 			  2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:                
-                <input name="myRpt" type="radio" value="1" /> Current Year
+                <input name="reportType" type="radio" value="${LibReportCommand.LC_CLASS}" 
+                <%= libReportCommand.getReportType() == LibReportCommand.LC_CLASS ? "checked=\"checked\"":"" %> /> Current Year
         </div>
         <hr/>
         <div class='formRow'>3. List 
-              <input name="myRpt" type="radio" value="2">
+              <input name="reportType" type="radio" value="${LibReportCommand.UNFILLED_REQUESTS}" 
+              <%= libReportCommand.getReportType() == LibReportCommand.UNFILLED_REQUESTS ? "checked=\"checked\"":"" %> />
               My Unfilled Requests &nbsp; [Please select date range for unfilled requests.]&nbsp;Sort By:
                 
                   <g:select name="sortBy" from="${sortByOptions}" value="" optionKey="id"
@@ -151,15 +154,13 @@
                   </select>
 		-->
               </div>
-        
-
  	<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dashboardCommand]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: libReportCommand]" />
 								To: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dashboardCommand]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand]" /> </div>
 	 <div class='formRow'>
          <center> <input type="submit" name="Submit" value="Submit">
       <input type="reset" name="Reset" value="Reset"> </center>

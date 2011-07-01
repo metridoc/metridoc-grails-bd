@@ -16,7 +16,7 @@ queries{
 			bl.oclc,
 			bl.call_number as callNumber,
 			bl.supplier_code as supplierCode,
-			IF(lower(bl.supplier_code) = 'list exhausted', 1, 0) as isUnfilled,
+			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
 			br.catalog_code_desc as borrower,
 			lndr.catalog_code_desc as lender,
 			min(shdl.ship_rec_date) as shipDate
@@ -39,7 +39,7 @@ queries{
 			bl.isbn,
 			bl.lccn,
 			bl.call_number as callNumber,
-			IF(lower(bl.supplier_code) = 'list exhausted', 1, 0) as isUnfilled,
+			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
 			br.catalog_code_desc as borrower,
 			count(bl.request_number) as itemTimes
 			from bd_bibliography_load bl
@@ -49,10 +49,10 @@ queries{
 			having count(bl.request_number) >= ?
 		'''
 		countsPerLibrary = '''
-			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? group by {lib_role} WITH ROLLUP;
+			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? {add_condition} group by {lib_role} WITH ROLLUP;
 		'''
 		countsPerLibraryFilled = '''
-			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? and lower(supplier_code) != 'list exhausted' group by {lib_role} WITH ROLLUP;
+			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? and supplier_code != 'List Exhausted' {add_condition} group by {lib_role} WITH ROLLUP;
 		'''
 		turnaroundPerLibrary = '''
 		select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, ship_date)) as turnaroundShpRec, 
@@ -66,7 +66,7 @@ queries{
 					min(bshl.ship_rec_date) as ship_date
 			from  bd_bibliography_load bl 
 			left join bd_ship_rec_date_load bshl on bl.request_number = bshl.request_number 
-			where request_date between ? and ? 
+			where request_date between ? and ? {add_condition}
 			group by bl.request_number ) sub_data
 			group by {lib_role} WITH ROLLUP
 		'''
@@ -74,13 +74,15 @@ queries{
 		requestedCallNos = '''
 			select call_number from bd_bibliography_load where request_date between ? and ? and call_number is not null
 		'''
+		
+		countsPerPickupLocations = '''
+			select IFNULL(pickup_location,"Total"), count(request_number) from bd_bibliography_load where request_date
+			between ? and ? and borrower=? and pickup_location is not null group by pickup_location WITH ROLLUP
+		'''
 	}
 }
 //select borrower, count(*), AVG(DATEDIFF(process_date, request_date)) from bd_bibliography_load where request_date between '2001-01-01' and '2011-05-05' group by borrower;
 //select request_number, process_date, request_date, DATEDIFF(process_date, request_date) from  bd_bibliography_load;
-
-
-//
 //select request_date, process_date, ship_date, DATEDIFF(process_date, ship_date), 
 //DATEDIFF(ship_date, request_date) , DATEDIFF(process_date, request_date) from 
 //(select bl.request_number, bl.request_date, bl.process_date, min(bshl.ship_rec_date) as ship_date

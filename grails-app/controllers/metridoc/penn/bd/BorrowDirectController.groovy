@@ -52,7 +52,7 @@ class BorrowDirectController {
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 		
-		def model = [summaryData: borrowDirectService.getSummaryDashboardData(), 
+		def model = [summaryData: borrowDirectService.getSummaryDashboardData(null), 
 					reportName:"Summary for fiscal year " + currentFiscalYear]
 		return model
 	}
@@ -60,16 +60,45 @@ class BorrowDirectController {
 	def lc_report = {
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts()
+		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(null)
 		return [callNoCounts:counts!=null?counts.getCountPerBucket():[:], 
 			    callNoCountPerType:counts!=null?counts.getCountPerType():[:],
 				bucketItems: BucketService.getInstance().getBucketItems(), 
 				reportName:"LC report for fiscal year " + currentFiscalYear]
 	}
 	
-	def dashboard = { DashboardCommand cmd ->
-		//TODO:impl
-		println "hello"
+	def lib_data_summary = { LibReportCommand cmd ->	
+		if(!cmd.hasErrors()){
+			if(cmd.reportType == LibReportCommand.SUMMARY){
+				def libId = cmd.library
+				def currentDate = Calendar.getInstance();
+				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+				def libName = Library.read(libId).getCatalogCodeDesc()
+				def model = [summaryData: borrowDirectService.getSummaryDashboardData(libId),
+							reportName:libName + ": Summary for fiscal year " + currentFiscalYear]
+				
+				render(view:'summary', model:model)
+				
+			}else if(cmd.reportType == LibReportCommand.LC_CLASS){
+				def libId = cmd.library
+				def currentDate = Calendar.getInstance();
+				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+				CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(libId)
+				def libName = Library.read(libId).getCatalogCodeDesc()
+				def model = [callNoCounts:counts!=null?counts.getCountPerBucket():[:],
+						callNoCountPerType:counts!=null?counts.getCountPerType():[:],
+						bucketItems: BucketService.getInstance().getBucketItems(),
+						reportName:libName + " : LC report for fiscal year " + currentFiscalYear]
+				render(view:'lc_report', model:model)
+				
+			}else{
+			println "hello"
+			}
+			return null
+		}else{
+			request.libReportCommand = cmd
+			render(view:'index', model:[])
+		}
 	}
 }
 
@@ -89,11 +118,11 @@ class DataDumpCommand {
 		library(min:0)
 		from_year(min:0)
 		from_month(min:0, max:11)
-		from_day(min:0, max:31)
+		from_day(min:1, max:31)
 		
 		to_year(min:0)
 		to_month(min:0, max:11)
-		to_day(min:0, max:31)
+		to_day(min:01, max:31)
 		
 		password(validator: { val, obj ->
 			def realPassword = ConfigurationHolder.config.passwords[obj.library]
@@ -116,15 +145,20 @@ class DataDumpMultCommand {
 	static constraints = {
 		from_year(min:0)
 		from_month(min:0, max:11)
-		from_day(min:0, max:31)
+		from_day(min:1, max:31)
 		
 		to_year(min:0)
 		to_month(min:0, max:11)
-		to_day(min:0, max:31)
+		to_day(min:1, max:31)
 	}
 }
 
-class DashboardCommand {
+class LibReportCommand {
+	public static final int SUMMARY = 0;
+	public static final int LC_CLASS = 1;
+	public static final int UNFILLED_REQUESTS = 2;
+	
+	int library = -1
 	int from_year = -1
 	int from_month = -1
 	int from_day = -1
@@ -134,16 +168,37 @@ class DashboardCommand {
 	int to_day = -1
 	
 	int reportType = 0
+	int sortBy = 0
 	
 	static constraints = {
-		from_year(min:0)
-		from_month(min:0, max:11)
-		from_day(min:0, max:31)
-		
-		to_year(min:0)
-		to_month(min:0, max:11)
-		to_day(min:0, max:31)
-		
+		library(min:0)
 		reportType(min:0, max:2)
+		
+		from_year(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 0, Integer.MAX_VALUE)
+		})
+		from_month(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 0, 11)
+		})
+		from_day(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 1, 31)
+		})
+		
+		to_year(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 0, Integer.MAX_VALUE)
+		})
+		to_month(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 0, 11)
+		})
+		to_day(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 1, 31)
+		})
+	}
+	
+	static boolean validateDateFields(val ,obj, min, max){
+		if(obj.reportType == LibReportCommand.UNFILLED_REQUESTS){
+			return val >= min && val <= max
+		}
+		return true
 	}
 }

@@ -48,6 +48,19 @@
     
     </tbody></table>
     <br>
+    <g:if test="${ summaryData.pickupData != null}">
+    	<table class="list" cellspacing="0">
+    	<tr><th>Pickup Locations</th><th>Items</th></tr>
+    	<g:each var="pickupLocation" status="i" in="${summaryData.pickupData}">
+    	<tr class="${ (i % 2) == 0 ? 'even' : 'odd'}">
+    		<td>${pickupLocation.getAt(0)}</td>
+    		<td class="dataCell"><g:formatNumber number="${pickupLocation.getAt(1)}" format="###,###,##0" /></td>
+    	<tr>
+    	</g:each>
+    	</table>
+    
+    </g:if>
+    <br>
     <table class="list summary" cellspacing="0">
   <thead>
     <tr>
