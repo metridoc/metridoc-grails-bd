@@ -66,18 +66,23 @@ queries{
 					min(bshl.ship_rec_date) as ship_date
 			from  bd_bibliography_load bl 
 			left join bd_ship_rec_date_load bshl on bl.request_number = bshl.request_number 
-			where request_date between ? and ? {add_condition}
+			where request_date between ? and ? and supplier_code != 'List Exhausted' {add_condition}
 			group by bl.request_number ) sub_data
 			group by {lib_role} WITH ROLLUP
 		'''
 		
 		requestedCallNos = '''
-			select call_number from bd_bibliography_load where request_date between ? and ? and call_number is not null
+			select call_number from bd_bibliography_load where request_date between ? and ? and call_number is not null and supplier_code != 'List Exhausted'
 		'''
 		
 		countsPerPickupLocations = '''
 			select IFNULL(pickup_location,"Total"), count(request_number) from bd_bibliography_load where request_date
-			between ? and ? and borrower=? and pickup_location is not null group by pickup_location WITH ROLLUP
+			between ? and ? and borrower=? and pickup_location is not null and supplier_code != 'List Exhausted' group by pickup_location WITH ROLLUP
+		'''
+		
+		libraryUnfilledRequests = '''
+		select request_number, borrower, lender, title, call_number, publication_year, isbn
+			from  bd_bibliography_load where  supplier_code = 'List Exhausted' and borrower = ?
 		'''
 	}
 }

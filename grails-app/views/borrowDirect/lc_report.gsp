@@ -8,7 +8,7 @@
 <body>
 	<div class="body">
 	<div style='font-style: italic;'>
-	Temporarily here:: Other=${callNoCountPerType.other}
+	Other=${callNoCountPerType.other}
 	:: Fordiss=${callNoCountPerType.fordiss}
 	:: Diss=${callNoCountPerType.diss}
 	:: Dewey=${callNoCountPerType.dewey}

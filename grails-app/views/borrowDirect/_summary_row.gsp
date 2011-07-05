@@ -2,7 +2,14 @@
      	<td>${libName}</td>
     	<td class="dataCell"><g:formatNumber number="${currentDataMap.currentMonth != null?currentDataMap.currentMonth:0 }" format="###,###,##0" /></td>
     	<g:if test="${!lending}">
-    		<td class="dataCell"><g:formatNumber number="${currentDataMap.monthFillRate!= null?currentDataMap.monthFillRate:0 }" format="0.00" /></td> 	
+    		<td class="dataCell">
+    		<g:if test="${currentDataMap.monthFillRate!=null && currentDataMap.monthFillRate > -1}">
+    			<g:formatNumber number="${currentDataMap.monthFillRate}" format="0.00" />
+    		</g:if>
+    		<g:else>
+			 --
+			</g:else>
+    		</td> 	
 		</g:if>
 		<g:else>
 			<td>&nbsp;</td>
@@ -11,7 +18,14 @@
     	<td class="dataCell"><g:formatNumber number="${currentDataMap.lastYearMonth!= null?currentDataMap.lastYearMonth:0 }" format="###,###,##0" /></td>
     	<td class="dataCell"><g:formatNumber number="${currentDataMap.currentFiscalYear!= null?currentDataMap.currentFiscalYear:0 }" format="###,###,##0" /></td>
     	<g:if test="${!lending}">
-    		<td class="dataCell"><g:formatNumber number="${currentDataMap.yearFillRate!= null?currentDataMap.yearFillRate:0 }" format="0.00" /></td>
+    		<td class="dataCell">
+    		<g:if test="${currentDataMap.yearFillRate!=null && currentDataMap.yearFillRate > -1}">
+    		<g:formatNumber number="${currentDataMap.yearFillRate}" format="0.00" />
+    		</g:if>
+    		<g:else>
+				--
+			</g:else>
+    		</td>
     	</g:if>
 		<g:else>
 			<td>&nbsp;</td>

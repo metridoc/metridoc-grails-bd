@@ -118,8 +118,8 @@ class BorrowDirectService {
 			keyForSection = 'lending'
 		}
 		
-		def query = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition)
-		def filledQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryFilled, libRoleColumn, additionalCondition)
+		def allQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition)
+		def query = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryFilled, libRoleColumn, additionalCondition)
 		//currentFiscalYear
 		def sqlParams = dates.currentFiscalYear
 		log.debug("Runnig query for currentFiscalYear: " + query + " params="+sqlParams)
@@ -140,13 +140,16 @@ class BorrowDirectService {
 	
 		if(isBorrowing){
 			//borrowing:yearFillRate
-			log.debug("Runnig query for yearFillRate: " + filledQuery + " params="+sqlParams)
-			sql.eachRow(filledQuery, 
+			log.debug("Runnig query for yearFillRate: " + allQuery + " params="+sqlParams)
+			sql.eachRow(allQuery, 
 				sqlParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
-				currentMap.yearFillRate = (currentMap.currentFiscalYear != 0? 
-				it.requestsNum /(float)currentMap.currentFiscalYear:1)
+				if(currentMap.currentFiscalYear == null){
+					currentMap.currentFiscalYear = 0;
+				}
+				currentMap.yearFillRate = (it.requestsNum != 0? 
+				currentMap.currentFiscalYear/(float)it.requestsNum :-1)
 			})
 		}
 		//lastFiscalYear
@@ -167,12 +170,15 @@ class BorrowDirectService {
 		
 		if(isBorrowing){
 		//borrowing:monthFillRate
-			log.debug("Runnig query for monthFillRate: " + filledQuery+ " params="+sqlParams)
-			sql.eachRow(filledQuery, sqlParams, {
+			log.debug("Runnig query for monthFillRate: " + allQuery+ " params="+sqlParams)
+			sql.eachRow(allQuery, sqlParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
-				currentMap.monthFillRate = (currentMap.currentMonth != 0?
-				it.requestsNum /(float)currentMap.currentMonth:1)
+				if(currentMap.currentMonth == null){
+					currentMap.currentMonth = 0;
+				}
+				currentMap.monthFillRate = (it.requestsNum != 0?
+				currentMap.currentMonth/(float)it.requestsNum:-1)
 			})
 		}
 		//lastYearMonth
@@ -185,7 +191,11 @@ class BorrowDirectService {
 		log.debug("Done for " + keyForSection)
 		return result
 	}
-	
+	def getUnfilledRequests(libId, orderBy){
+		Sql sql = new Sql(dataSource);
+		def query = config.queries.borrowdirect.libraryUnfilledRequests
+		return sql.rows(query, [libId, orderBy])
+	}
 	private String getAdjustedQuery(query, libRoleColumn, additionalCondition){
 		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)
 		result.replaceAll("\\{add_condition\\}", additionalCondition)
