@@ -36,14 +36,19 @@
 				index:0, 
 				libName: 'All Libraries',
 				lending: false]" />
-    
+<g:set var="rowOffset" value="${0}"/>    
 <g:each var="library" status="i" in="${libraries}">
+<g:if test="${libraryId == null || libraryId != library.getId() }">
     <g:set var="currentDataMap" value="${summaryData.get(library.getId().longValue()) != null ? summaryData.get(library.getId().longValue()).borrowing: [:]}" />
      <g:render template="summary_row"
 		model="[currentDataMap:currentDataMap, 
-				index:(i+1), 
+				index:(i+1-rowOffset), 
 				libName: library.catalogCodeDesc,
 				lending: false]" />
+</g:if>
+<g:else>
+<g:set var="rowOffset" value="${1}"/>
+</g:else>
 </g:each>
     
     </tbody></table>
@@ -90,13 +95,19 @@
 				libName: 'All Libraries',
 				lending: true]" />
     
+<g:set var="rowOffset" value="${0}"/>    
 <g:each var="library" status="i" in="${libraries}">
+<g:if test="${libraryId == null || libraryId != library.getId() }">
     <g:set var="currentDataMap" value="${summaryData.get(library.getId().longValue()) != null ? summaryData.get(library.getId().longValue()).lending: [:]}" />
      <g:render template="summary_row"
 		model="[currentDataMap:currentDataMap, 
-				index:(i+1), 
+				index:(i+1-rowOffset), 
 				libName: library.catalogCodeDesc,
 				lending: true]" />
+</g:if>
+<g:else>
+<g:set var="rowOffset" value="${1}"/>
+</g:else>
 </g:each>
   </tbody>
 </table>

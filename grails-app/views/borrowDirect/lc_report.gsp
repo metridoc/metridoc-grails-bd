@@ -6,7 +6,7 @@
 <title>LC report</title>
 </head>
 <body>
-	<div class="body">
+	<div class="bd_body">
 	<div style='font-style: italic;'>
 	Other=${callNoCountPerType.other}
 	:: Fordiss=${callNoCountPerType.fordiss}

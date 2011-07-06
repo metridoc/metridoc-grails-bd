@@ -142,17 +142,8 @@
               <%= libReportCommand.getReportType() == LibReportCommand.UNFILLED_REQUESTS ? "checked=\"checked\"":"" %> />
               My Unfilled Requests &nbsp; [Please select date range for unfilled requests.]&nbsp;Sort By:
                 
-                  <g:select name="sortBy" from="${sortByOptions}" value="" optionKey="id"
-									optionValue="catalogCodeDesc" />
-                  <!--
-                  <select name="sortBy" size="1">
-                    <option selected>Sort By...</option>
-                    <option value = '1'>Title</option>
-                    <option value = '2'>Call Number</option>
-                    <option value = '3'>Imprint Date</option>
-                    <option value = '4'>ISBN</option>
-                  </select>
-		-->
+                <g:select name="sortBy" from="${sortByOptions}" value="${libReportCommand.sortBy}"
+          		 valueMessagePrefix="datafarm.bd.unfilled.req.sortBy" />
               </div>
  	<div class='formRow'>
 						Specify Dates: From: <g:render

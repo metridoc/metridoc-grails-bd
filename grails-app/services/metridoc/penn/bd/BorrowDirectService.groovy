@@ -191,10 +191,12 @@ class BorrowDirectService {
 		log.debug("Done for " + keyForSection)
 		return result
 	}
-	def getUnfilledRequests(libId, orderBy){
+	def getUnfilledRequests(dateFrom, dateTo, libId, orderBy){
 		Sql sql = new Sql(dataSource);
-		def query = config.queries.borrowdirect.libraryUnfilledRequests
-		return sql.rows(query, [libId, orderBy])
+		def query = config.queries.borrowdirect.libraryUnfilledRequests + orderBy
+		def sqlParams = [dateFrom, dateTo, libId]
+		log.debug("Runnig query for unfilled requests " + query + "params = " + sqlParams)
+		return sql.rows(query, sqlParams)
 	}
 	private String getAdjustedQuery(query, libRoleColumn, additionalCondition){
 		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)

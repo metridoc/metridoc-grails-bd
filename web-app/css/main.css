@@ -202,6 +202,9 @@ th.desc a {
     border-left: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
+.list td{
+	text-align: left /* for IE */
+}
 .list th:hover, .list tr:hover {
     /*background: #b2d1ff;*/
 }
@@ -292,6 +295,7 @@ th.desc a {
 }
 .header TD{
 	padding:12px;
+	white-space:nowrap;
 }
 .header span{
 	color: #ffffff;

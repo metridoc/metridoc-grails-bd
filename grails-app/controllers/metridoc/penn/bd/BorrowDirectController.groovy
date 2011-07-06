@@ -10,8 +10,10 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 
 class BorrowDirectController {
+	def indexPageModel = [sortByOptions:LibReportCommand.sortByOptions]
 	def borrowDirectService
-    def index = { }
+    def index = { 
+		return indexPageModel }
 	def lost_password = {
 		render(view:'lost_password', model:[])
 	}
@@ -30,7 +32,7 @@ class BorrowDirectController {
 			return null
 		}else{
 			request.dataDumpCommand = cmd
-			render(view:'index', model:[])
+			render(view:'index', model:indexPageModel)
 		}
 	}
 	
@@ -45,7 +47,7 @@ class BorrowDirectController {
 			return null
 		}else{
 			request.dataDumpMultCommand = cmd
-			render(view:'index', model:[])
+			render(view:'index', model:indexPageModel)
 		}
 	}
 	def summary = {
@@ -75,7 +77,8 @@ class BorrowDirectController {
 				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 				def libName = Library.read(libId).getCatalogCodeDesc()
 				def model = [summaryData: borrowDirectService.getSummaryDashboardData(libId),
-							reportName:libName + ": Summary for fiscal year " + currentFiscalYear]
+							reportName:libName + ": Summary for fiscal year " + currentFiscalYear,
+							libraryId: libId]
 				
 				render(view:'summary', model:model)
 				
@@ -92,12 +95,17 @@ class BorrowDirectController {
 				render(view:'lc_report', model:model)
 				
 			}else{
-			println "hello"
+				def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
+				def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
+			
+				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy)
+				def reportHeader = 'Request Date Range: ' + ReportGeneratorHelper.getStringValue(dateFrom) + ' - ' + ReportGeneratorHelper.getStringValue(dateTo) 
+				render(view:'unfilled_requests', model:[reportData: data, reportName:reportHeader])
 			}
 			return null
 		}else{
 			request.libReportCommand = cmd
-			render(view:'index', model:[])
+			render(view:'index', model:indexPageModel)
 		}
 	}
 }
@@ -157,6 +165,12 @@ class LibReportCommand {
 	public static final int SUMMARY = 0;
 	public static final int LC_CLASS = 1;
 	public static final int UNFILLED_REQUESTS = 2;
+
+	static config = ConfigurationHolder.config
+	public static sortByOptions = [config.borrowdirect.db.column.title,
+		config.borrowdirect.db.column.callNo,
+		config.borrowdirect.db.column.publicationYear,
+		config.borrowdirect.db.column.isbn]
 	
 	int library = -1
 	int from_year = -1
@@ -168,7 +182,7 @@ class LibReportCommand {
 	int to_day = -1
 	
 	int reportType = 0
-	int sortBy = 0
+	def sortBy
 	
 	static constraints = {
 		library(min:0)
@@ -192,6 +206,9 @@ class LibReportCommand {
 		})
 		to_day(validator: { val, obj -> 
 			return validateDateFields(val ,obj, 1, 31)
+		})
+		sortBy(validator: { val, obj -> 
+			return val != null && sortByOptions.contains(val)
 		})
 	}
 	

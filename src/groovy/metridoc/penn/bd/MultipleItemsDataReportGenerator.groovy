@@ -4,7 +4,6 @@ import groovy.sql.GroovyResultSetExtension;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.poi.ss.usermodel.Cell;
