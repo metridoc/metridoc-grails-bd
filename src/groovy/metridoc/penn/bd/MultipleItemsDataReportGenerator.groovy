@@ -58,7 +58,7 @@ class MultipleItemsDataReportGenerator {
 		//title
 		addCell(row, currentRowData.title);	
 		//call number
-		addCell(row, currentRowData.callNumber);
+		addCell(row, currentRowData.isUnfilled == 0 ? currentRowData.callNumber:currentRowData.callNumberUnf);
 		//publication year
 		addCell(row, currentRowData.publicationYear);
 		//isbn

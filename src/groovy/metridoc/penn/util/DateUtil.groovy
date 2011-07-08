@@ -22,7 +22,7 @@ class DateUtil {
 	public static int getFiscalYear(int year, int month){
 		return month < FY_START_MONTH?year:year+1
 	}
-	private static int getLastDayOfMonth(int year, int month){
+	public static int getLastDayOfMonth(int year, int month){
 		def calendar = Calendar.getInstance()
 		calendar.set(Calendar.YEAR, year)
 		calendar.set(Calendar.MONTH, month)

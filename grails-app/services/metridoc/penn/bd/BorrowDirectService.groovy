@@ -59,7 +59,7 @@ class BorrowDirectService {
 		
 		dates.lastYearMonth = [ DateUtil.getDateStartOfDay(currentYear - 1, currentMonth, 1),
 								DateUtil.getDateEndOfDay(currentYear - 1, currentMonth,
-										 currentDate.get(Calendar.DAY_OF_MONTH))]
+								DateUtil.getLastDayOfMonth(currentYear - 1, currentMonth))]
 		
 		loadDataPerLibrary(sql, true, result, dates, libId);
 		loadDataPerLibrary(sql, false, result, dates, libId);
@@ -195,7 +195,7 @@ class BorrowDirectService {
 		Sql sql = new Sql(dataSource);
 		def query = config.queries.borrowdirect.libraryUnfilledRequests + orderBy
 		def sqlParams = [dateFrom, dateTo, libId]
-		log.debug("Runnig query for unfilled requests " + query + "params = " + sqlParams)
+		log.debug("Runnig query for unfilled requests " + query + "\nparams = " + sqlParams)
 		return sql.rows(query, sqlParams)
 	}
 	private String getAdjustedQuery(query, libRoleColumn, additionalCondition){

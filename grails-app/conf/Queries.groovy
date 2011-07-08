@@ -15,6 +15,7 @@ queries{
 			bl.lccn,
 			bl.oclc,
 			bl.call_number as callNumber,
+			cn.call_number as callNumberUnf,
 			bl.supplier_code as supplierCode,
 			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
 			br.catalog_code_desc as borrower,
@@ -25,7 +26,9 @@ queries{
 			left join bd_patron_type pt on bl.patron_type = pt.patron_type
 			left join bd_catalog_code br on bl.borrower = br.catalog_library_id
 			left join bd_catalog_code lndr on bl.lender = lndr.catalog_library_id
+			left join bd_call_number_load cn on bl.request_number = cn.request_number
 			where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and (bl.borrower <=> bl.lender) IS FALSE
+			and cn.holdings_seq=1
 			group by bl.request_number
 		'''	
 		dataDumpMultipleItems = '''
@@ -33,12 +36,15 @@ queries{
 			bl.publication_year as publicationYear,
 			bl.isbn,
 			bl.call_number as callNumber,
+			cn.call_number as callNumberUnf,
 			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
 			br.catalog_code_desc as borrower,
 			count(bl.request_number) as itemTimes
 			from bd_bibliography_load bl
 			left join bd_catalog_code br on bl.borrower = br.catalog_library_id
+			left join bd_call_number_load cn on bl.request_number = cn.request_number
 			where bl.request_date between ? and ? and (bl.borrower <=> bl.lender) IS FALSE
+			and cn.holdings_seq=1
 			group by bl.borrower, bl.call_number, bl.publication_year, bl.isbn, isUnfilled, bl.title 
 			having count(bl.request_number) >= ?
 		'''
@@ -75,32 +81,26 @@ queries{
 		'''
 		
 		libraryUnfilledRequests = '''
-		select request_number, 
+		select distinct bl.request_number, 
 		br.catalog_code_desc as borrower,
 		title, 
-		call_number as callNo,
+		cn.call_number as callNo,
 		publication_year as publicationYear, 
 		isbn
 		from  bd_bibliography_load bl 
 		left join bd_catalog_code br on bl.borrower = br.catalog_library_id
+		left join bd_call_number_load cn on bl.request_number = cn.request_number
 		where request_date
-			between ? and ? and supplier_code = 'List Exhausted' and bl.borrower = ? and (bl.borrower <=> bl.lender) IS FALSE order by 
+			between ? and ? and bl.supplier_code = 'List Exhausted' and bl.borrower = ? and (bl.borrower <=> bl.lender) IS FALSE 
+			and cn.holdings_seq = 1 order by 
 		'''
 	}
 }
-//select borrower, count(*), AVG(DATEDIFF(process_date, request_date)) from bd_bibliography_load where request_date between '2001-01-01' and '2011-05-05' group by borrower;
-//select request_number, process_date, request_date, DATEDIFF(process_date, request_date) from  bd_bibliography_load;
-//select request_date, process_date, ship_date, DATEDIFF(process_date, ship_date), 
-//DATEDIFF(ship_date, request_date) , DATEDIFF(process_date, request_date) from 
-//(select bl.request_number, bl.request_date, bl.process_date, min(bshl.ship_rec_date) as ship_date
-//		from  bd_bibliography_load bl left join bd_ship_rec_date_load bshl on bl.request_number = bshl.request_number group by bl.request_number ) a
-
-
 
 borrowdirect.db.column.borrower = 'borrower'
 borrowdirect.db.column.lender = 'lender'
 
 borrowdirect.db.column.title = 'title'
-borrowdirect.db.column.callNo = 'call_number'
+borrowdirect.db.column.callNo = 'callNo'
 borrowdirect.db.column.publicationYear = 'publication_year'
 borrowdirect.db.column.isbn = 'isbn'

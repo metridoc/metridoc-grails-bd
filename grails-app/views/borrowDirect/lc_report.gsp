@@ -13,7 +13,7 @@
 	:: Diss=${callNoCountPerType.diss}
 	:: Dewey=${callNoCountPerType.dewey}
 	:: Theses=${callNoCountPerType.thesis}
-	:: LC total=${callNoCountPerType.lc}
+	:: LC=${callNoCountPerType.lc}
 	</div>
 		<table class="list" cellspacing="0">
 			<tr>

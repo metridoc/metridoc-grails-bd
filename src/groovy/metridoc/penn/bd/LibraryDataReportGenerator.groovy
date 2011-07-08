@@ -99,7 +99,7 @@ class LibraryDataReportGenerator {
 		//lccn
 		addCell(row, currentRowData.lccn);
 		//call number
-		addCell(row, currentRowData.callNumber);
+		addCell(row, currentRowData.isUnfilled == 0 ? currentRowData.callNumber:currentRowData.callNumberUnf);
 		currentRowIndex++;
 	}
 }

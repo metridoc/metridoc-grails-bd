@@ -13,20 +13,20 @@
   <thead>
     <tr>
       <th class="mainColHeader" rowspan="2">Borrowing</th>
-      <th class="borrow" colspan="3">Month</th>
-      <th class="borrow" colspan="3">Year</th>
-      <th class="borrow" colspan="3">Turnaround Time</th>
+      <th colspan="3">Month</th>
+      <th colspan="3">Year</th>
+      <th colspan="3">Turnaround Time</th>
     </tr>
     <tr>
-      <th class="borrow">Items</th>
-      <th class="borrow">Fill Rate</th>
-      <th class="borrow">Last Year</th>
-      <th class="borrow">Items</th>
-      <th class="borrow">Fill Rate</th>
-      <th class="borrow">Last Year</th>
-      <th class="borrow">Req - Rec</th>
-      <th class="borrow">Req - Shp</th>
-      <th class="borrow">Shp - Rec</th>
+      <th>Items</th>
+      <th>Fill Rate</th>
+      <th>Last Year</th>
+      <th>Items</th>
+      <th>Fill Rate</th>
+      <th>Last Year</th>
+      <th>Req - Rec</th>
+      <th>Req - Shp</th>
+      <th>Shp - Rec</th>
     </tr>
     </thead>
     <tbody>
@@ -70,21 +70,21 @@
   <thead>
     <tr>
       <th class="mainColHeader" rowspan="2">Lending</th>
-      <th class="lend" colspan="3">Month</th>
-      <th class="lend" colspan="3">Year</th>
-      <th class="lend" colspan="3">Turnaround Time</th>
+      <th colspan="3">Month</th>
+      <th colspan="3">Year</th>
+      <th colspan="3">Turnaround Time</th>
     </tr>
     <tr>
-      <th class="lend">Items</th>
-      <th class="lendVoid">Fill Rate</th>
-      <th class="lend">Last Year</th>
-      <th class="lend">Items</th>
-      <th class="lendVoid">Fill Rate</th>
+      <th>Items</th>
+      <th>Fill Rate</th>
+      <th>Last Year</th>
+      <th>Items</th>
+      <th>Fill Rate</th>
 
-      <th class="lend">Last Year</th>
-      <th class="lend">Req - Rec</th>
-      <th class="lend">Req - Shp</th>
-      <th class="lend">Shp - Rec</th>
+      <th>Last Year</th>
+      <th>Req - Rec</th>
+      <th>Req - Shp</th>
+      <th>Shp - Rec</th>
     </tr>
     </thead>
     <tbody>
