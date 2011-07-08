@@ -138,7 +138,7 @@ class BorrowDirectService {
 			currentMap.turnaroundShpRec = it.turnaroundShpRec
 		})
 	
-		if(isBorrowing){
+		if(isBorrowing && libId == null){//No lender info for unfilled items 
 			//borrowing:yearFillRate
 			log.debug("Runnig query for yearFillRate: " + allQuery + " params="+sqlParams)
 			sql.eachRow(allQuery, 
@@ -168,7 +168,7 @@ class BorrowDirectService {
 			libData.get(keyForSection).currentMonth = it.requestsNum
 		})
 		
-		if(isBorrowing){
+		if(isBorrowing && libId == null){
 		//borrowing:monthFillRate
 			log.debug("Runnig query for monthFillRate: " + allQuery+ " params="+sqlParams)
 			sql.eachRow(allQuery, sqlParams, {
