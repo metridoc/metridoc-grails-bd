@@ -56,6 +56,12 @@ input, select, textarea {
     margin: 2px 0;
     padding: 2px 4px;
 }
+input.radio{
+	border-width: 0px
+}
+input.radio:focus{
+	border-width: 0px
+}
 select {
    padding: 2px 2px 2px 0;
 }

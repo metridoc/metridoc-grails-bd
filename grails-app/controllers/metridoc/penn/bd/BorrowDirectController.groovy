@@ -208,7 +208,10 @@ class LibReportCommand {
 			return validateDateFields(val ,obj, 1, 31)
 		})
 		sortBy(validator: { val, obj -> 
-			return val != null && sortByOptions.contains(val)
+			if(obj.reportType == LibReportCommand.UNFILLED_REQUESTS){
+				return val != null && sortByOptions.contains(val)
+			}
+			return true
 		})
 	}
 	

@@ -8,7 +8,7 @@
 <title>Summary</title>
 </head>
 <body>
-  <div class="body">
+  <div class="body_bd">
   <table class="list summary" cellspacing="0">
   <thead>
     <tr>

@@ -13,6 +13,18 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 <meta name="layout" content="bd_main" />
 <title>BorrowDirect Data Repository</title>
+<script>
+	function selectionChanged(val){
+		var disabledVal = (val == ${LibReportCommand.UNFILLED_REQUESTS}) ? '':'disabled';
+		document.lib_data_summary_form.from_month.disabled = disabledVal
+		document.lib_data_summary_form.from_day.disabled = disabledVal
+		document.lib_data_summary_form.from_year.disabled = disabledVal
+		document.lib_data_summary_form.to_month.disabled = disabledVal
+		document.lib_data_summary_form.to_day.disabled = disabledVal
+		document.lib_data_summary_form.to_year.disabled = disabledVal
+		document.lib_data_summary_form.sortBy.disabled = disabledVal
+	}
+</script>
 </head>
 <body>
 	<div class="bd_body">
@@ -67,7 +79,7 @@
 						Invalid input parameters!
   					</div>
 					</g:hasErrors>
-					<g:form name="form3" method="post" action="data_dump_mult">
+					<g:form name="data_dump_mult_form" method="post" action="data_dump_mult">
 					<div class='formRow'>
 						2. Multiple Items Data Dump [System-Wide]: 
 						</div>
@@ -119,28 +131,27 @@
 			</td></tr>			
   <tr>
     <td>
-    <g:form name="form3" method="post" action="lib_data_summary">
+    <g:form name="lib_data_summary_form" method="post" action="lib_data_summary">
 		<div class='formRow'>Select Your Library: 
               <g:select name="library" from="${libraries}" value="${libReportCommand.library}" optionKey="id"
 									optionValue="catalogCodeDesc" /> 
-				</div>					
+				</div>				
 									<hr/>
 		<div class='formRow'>
-              1. Summary Dashboard [filled request, filled rate and turnaround times]:
-              <input name="reportType" type="radio" value="${LibReportCommand.SUMMARY}"     
-<%= libReportCommand.getReportType() == LibReportCommand.SUMMARY ? "checked=\"checked\"":"" %> /> Current Year 
+              <input name="reportType" type="radio" class="radio" value="${LibReportCommand.SUMMARY}"     
+<%= libReportCommand.getReportType() == LibReportCommand.SUMMARY ? "checked=\"checked\"":"" %> onclick="selectionChanged(this.value)"/> 
+Summary Dashboard [filled request, filled rate and turnaround times]
       	</div>
         <hr/>       
 		<div class='formRow'>
-			  2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:                
-                <input name="reportType" type="radio" value="${LibReportCommand.LC_CLASS}" 
-                <%= libReportCommand.getReportType() == LibReportCommand.LC_CLASS ? "checked=\"checked\"":"" %> /> Current Year
+			  <input name="reportType" type="radio" class="radio" value="${LibReportCommand.LC_CLASS}" 
+                <%= libReportCommand.getReportType() == LibReportCommand.LC_CLASS ? "checked=\"checked\"":"" %> onclick="selectionChanged(this.value)"/> LC Class Dashboard [filled requests grouped by LC Class | first letter]
         </div>
         <hr/>
-        <div class='formRow'>3. List 
-              <input name="reportType" type="radio" value="${LibReportCommand.UNFILLED_REQUESTS}" 
-              <%= libReportCommand.getReportType() == LibReportCommand.UNFILLED_REQUESTS ? "checked=\"checked\"":"" %> />
-              My Unfilled Requests &nbsp; [Please select date range for unfilled requests.]&nbsp;Sort By:
+        <div class='formRow'>
+        <input name="reportType" type="radio" class="radio" value="${LibReportCommand.UNFILLED_REQUESTS}" 
+              <%= libReportCommand.getReportType() == LibReportCommand.UNFILLED_REQUESTS ? "checked=\"checked\"":"" %> onclick="selectionChanged(this.value)"/>
+              List My Unfilled Requests &nbsp; [Please select date range for unfilled requests.]&nbsp; Sort By:
                 
                 <g:select name="sortBy" from="${sortByOptions}" value="${libReportCommand.sortBy}"
           		 valueMessagePrefix="datafarm.bd.unfilled.req.sortBy" />
@@ -161,5 +172,6 @@
   </tr>
 </table>		
 	</div>
+	<script>selectionChanged(${libReportCommand.getReportType()})</script>
 </body>
 </html>
