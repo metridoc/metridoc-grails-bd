@@ -54,6 +54,11 @@ queries{
 		countsPerLibraryMonthlyFilled = '''
 			select IFNULL({lib_role},-1) as {lib_role}, month(request_date), count(*) as requestsNum from bd_bibliography_load where request_date between ? and ? and NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) {add_condition} group by {lib_role}, month(request_date) WITH ROLLUP;
 		'''
+		countsPerLibraryUnfilled = '''
+			select IFNULL(borrower,-1) as borrower, count(distinct bl.request_number) as requestsNum from bd_bibliography_load bl inner join bd_print_date_load pd on bl.request_number = pd.request_number
+			where request_date between ? and ? and supplier_code = 'List Exhausted' and pd.library_id = ? and borrower != pd.library_id group by borrower WITH ROLLUP;
+		'''
+		
 		turnaroundPerLibrary = '''
 		select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, ship_date)) as turnaroundShpRec, 
 		AVG(DATEDIFF(ship_date, request_date))as turnaroundReqShp, 

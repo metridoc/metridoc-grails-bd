@@ -135,12 +135,19 @@ class BorrowDirectService {
 			def libData = getLibDataMap(it.getAt(0), result)
 			int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
 			libData.get(keyForSection).currentFiscalYear.put(currentKey, it.requestsNum)
-			if(it.getAt(0) > -1){
+			if(it.getAt(0) > 0){
+				//count sum for each month (row All Libraries)
 				def prevValue = allLibDataSection.currentFiscalYear.get(currentKey);
 				if( prevValue == null){
 					prevValue = 0;
 				}
 				allLibDataSection.currentFiscalYear.put(currentKey, it.requestsNum + prevValue)
+				if(currentKey == -1 && !isBorrowing && libId != null){
+					//if there is lending fillRate and for current library it.getAt(0) year number is > 0
+					//set default yearFillRate=1, if there were any unfilled requests
+					//this number will be updated later (section '//lending: yearFillRate for lib')
+					libData.get(keyForSection).yearFillRate = 1
+				}
 			}
 		})
 		//turnaround
@@ -154,19 +161,38 @@ class BorrowDirectService {
 			currentMap.turnaroundShpRec = it.turnaroundShpRec
 		})
 	
-		if(isBorrowing && libId == null){//No lender info for unfilled items 
-			//borrowing:yearFillRate
-			log.debug("Runnig query for yearFillRate: " + allQuery + " params="+sqlParams)
-			sql.eachRow(allQuery, 
-				sqlParams, {
+		if(isBorrowing){ 
+			if(libId == null){//No lender info for unfilled items 
+				//borrowing:yearFillRate
+				log.debug("Runnig query for yearFillRate: " + allQuery + " params="+sqlParams)
+				sql.eachRow(allQuery, 
+					sqlParams, {
+					def libData = getLibDataMap(it.getAt(0), result)
+					def currentMap = libData.get(keyForSection)
+					if(currentMap.currentFiscalYear.get(-1) == null){
+						currentMap.currentFiscalYear.put(-1, 0);
+					}
+					currentMap.yearFillRate = (it.requestsNum != 0? 
+					currentMap.currentFiscalYear.get(-1)/(float)it.requestsNum :-1)
+				})
+			}
+		}else if(libId != null){
+			//lending: yearFillRate for lib
+			def unfilledReqsQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryUnfilled, libRoleColumn, additionalCondition)
+			def unfilledReqsParams = [dates.currentFiscalYear[0], dates.currentFiscalYear[1], libId] 
+			log.debug("Runnig query for yearFillRate: lending: " + unfilledReqsQuery + " params="+unfilledReqsParams)
+			sql.eachRow(unfilledReqsQuery,
+				unfilledReqsParams, {
 				def libData = getLibDataMap(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
 				if(currentMap.currentFiscalYear.get(-1) == null){
 					currentMap.currentFiscalYear.put(-1, 0);
 				}
-				currentMap.yearFillRate = (it.requestsNum != 0? 
-				currentMap.currentFiscalYear.get(-1)/(float)it.requestsNum :-1)
+				def allRequests = currentMap.currentFiscalYear.get(-1) + it.requestsNum
+				currentMap.yearFillRate = (allRequests != 0?
+				currentMap.currentFiscalYear.get(-1)/(float)allRequests :-1)
 			})
+		
 		}
 		//lastFiscalYear
 		sqlParams = dates.lastFiscalYear 
