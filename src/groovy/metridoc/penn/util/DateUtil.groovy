@@ -3,7 +3,7 @@ package metridoc.penn.util
 import java.util.Date;
 
 class DateUtil {
-	private static FY_START_MONTH = Calendar.JULY;
+	public static FY_START_MONTH = Calendar.JULY;
 	
 	public static Date getDate(int year, int month, int day, int hourOfDay, int minute, int second){
 		def calendar = Calendar.getInstance()
@@ -26,15 +26,20 @@ class DateUtil {
 		def calendar = Calendar.getInstance()
 		calendar.set(Calendar.YEAR, year)
 		calendar.set(Calendar.MONTH, month)
+		//Reset current day of month in case today is 31st
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
 		return calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 	}
 	
 	private static Date getFiscalYearStartDate(int fiscalYear){
 		return getDateStartOfDay(fiscalYear - 1, FY_START_MONTH, 1)
 	}
+	public static int getFiscalYearEndMonth(){
+		return FY_START_MONTH - 1;
+	}
 	
 	private static Date getFiscalYearEndDate(int fiscalYear){
-		def endMonth =  FY_START_MONTH - 1;
+		def endMonth = getFiscalYearEndMonth();
 		return getDateEndOfDay(fiscalYear, endMonth, getLastDayOfMonth(fiscalYear, endMonth))
 	}
 }

@@ -51,11 +51,11 @@ class BorrowDirectController {
 		}
 	}
 	def summary = {
-		def currentDate = Calendar.getInstance();
-		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-		
-		def model = [summaryData: borrowDirectService.getSummaryDashboardData(null), 
-					reportName:"Summary for fiscal year " + currentFiscalYear]
+		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
+		def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear)
+		data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
+		def model = [summaryData: data, 
+					reportName:"Summary for fiscal year " + data.fiscalYear]
 		return model
 	}
 	
@@ -73,11 +73,15 @@ class BorrowDirectController {
 		if(!cmd.hasErrors()){
 			if(cmd.reportType == LibReportCommand.SUMMARY){
 				def libId = cmd.library
-				def currentDate = Calendar.getInstance();
-				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 				def libName = Library.read(libId).getCatalogCodeDesc()
-				def model = [summaryData: borrowDirectService.getSummaryDashboardData(libId),
-							reportName:libName + ": Summary for fiscal year " + currentFiscalYear,
+				def fiscalYear = null;
+				if(params.Submit2 != null){
+					fiscalYear = 2011
+				}
+				def data = borrowDirectService.getSummaryDashboardData(libId, fiscalYear)
+				data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
+				def model = [summaryData: data,
+							reportName:libName + ": Summary for fiscal year " + data.fiscalYear,
 							libraryId: libId]
 				
 				render(view:'summary', model:model)
