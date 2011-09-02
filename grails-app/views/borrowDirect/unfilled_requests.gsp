@@ -10,7 +10,7 @@
 	<g:if test="${ reportData.size() > 0 }">
 		<table class="list" cellspacing="0">
 			<tr>
-				<th>Borrower</th>
+				<th>Lender</th>
 				<th>Title</th>
 				<th>CallNo</th>
 				<th>Publication Year</th>
@@ -18,7 +18,7 @@
 			</tr>
 			<g:each var="reportItem" status="i" in="${reportData}">
 				<tr class="${ (i % 2) == 0 ? 'even' : 'odd'}">
-					<td>${reportItem.borrower}</td>
+					<td>${reportItem.lender}</td>
 					<td>${reportItem.title}</td>
 					<td>${reportItem.callNo}</td>
 					<td>${reportItem.publicationYear}</td>

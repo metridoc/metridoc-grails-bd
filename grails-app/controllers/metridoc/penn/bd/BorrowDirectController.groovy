@@ -101,9 +101,10 @@ class BorrowDirectController {
 			}else{
 				def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
 				def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
-			
+
 				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy)
-				def reportHeader = 'Request Date Range: ' + ReportGeneratorHelper.getStringValue(dateFrom) + ' - ' + ReportGeneratorHelper.getStringValue(dateTo) 
+				def libName = Library.read(cmd.library).getCatalogCodeDesc()
+				def reportHeader = 'Unfilled requests for ' + libName + ' : ' + ReportGeneratorHelper.getStringValue(dateFrom) + ' - ' + ReportGeneratorHelper.getStringValue(dateTo) 
 				render(view:'unfilled_requests', model:[reportData: data, reportName:reportHeader])
 			}
 			return null

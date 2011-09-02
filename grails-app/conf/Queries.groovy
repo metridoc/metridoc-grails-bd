@@ -91,18 +91,19 @@ queries{
 		'''
 		
 		libraryUnfilledRequests = '''
-		select distinct bl.request_number, 
-		br.catalog_code_desc as borrower,
+		select distinct bl.request_number,
 		title, 
 		cn.call_number as callNo,
 		publication_year as publicationYear, 
-		isbn
+		isbn,
+		GROUP_CONCAT(DISTINCT lr.catalog_code_desc ORDER BY pd.print_date SEPARATOR ', ') as lender
 		from  bd_bibliography_load bl 
-		left join bd_catalog_code br on bl.borrower = br.catalog_library_id
 		left join bd_call_number_load cn on bl.request_number = cn.request_number
+		left join bd_print_date_load pd on bl.request_number = pd.request_number
+		left join bd_catalog_code lr on pd.library_id = lr.catalog_library_id
 		where request_date
 			between ? and ? and bl.supplier_code = 'List Exhausted' and bl.borrower = ? and NOT (bl.borrower <=> bl.lender) 
-			and cn.holdings_seq = 1 order by 
+			and cn.holdings_seq = 1 group by bl.request_number order by 
 		'''
 	}
 }

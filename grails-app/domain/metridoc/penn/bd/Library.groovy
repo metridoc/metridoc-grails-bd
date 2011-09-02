@@ -2,7 +2,7 @@ package metridoc.penn.bd
 
 class Library {
 	int id
-	String catalogCode
+	char catalogCode
 	String catalogCodeDesc
 	
 	static mapping = {
