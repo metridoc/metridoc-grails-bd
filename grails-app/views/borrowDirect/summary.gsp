@@ -32,7 +32,7 @@
       <th>Fill Rate</th>
       <th>Last Year</th>
      <% for(int i = 0; i < monthsOrder.size(); i++){ %>
-    	<th>Item</th><th>Last Year</th>
+    	<th>Items</th><th>Last Year</th>
 	<% } %>
     </tr>
     </thead>
@@ -104,7 +104,7 @@
       <th>Fill Rate</th>
       <th>Last Year</th>
      <% for(int i = 0; i < monthsOrder.size(); i++){ %>
-    	<th>Item</th><th>Last Year</th>
+    	<th>Items</th><th>Last Year</th>
 	<% } %>
     </tr>
     </thead>
