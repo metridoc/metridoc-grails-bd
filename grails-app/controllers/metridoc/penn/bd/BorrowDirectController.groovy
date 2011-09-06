@@ -12,10 +12,14 @@ import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 class BorrowDirectController {
 	def indexPageModel = [sortByOptions:LibReportCommand.sortByOptions]
 	def borrowDirectService
+	def serviceKey = BorrowDirectService.BD_SERVICE_KEY;
+	
+	
     def index = { 
 		return indexPageModel }
 	def lost_password = {
 		render(view:'lost_password', model:[])
+		//render(view:'/bd_ezb/bd_ezb', model:[])
 	}
 	def notes = {
 		render(view:'notes', model:[])
@@ -28,7 +32,7 @@ class BorrowDirectController {
 			def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
 			response.setHeader("Content-Disposition", "attachment;filename=\"my_library_dump.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
-			borrowDirectService.dumpDataLibrary(library_id, dateFrom, dateTo, response.outputStream)	
+			borrowDirectService.dumpDataLibrary(library_id, dateFrom, dateTo, response.outputStream, serviceKey)	
 			return null
 		}else{
 			request.dataDumpCommand = cmd
@@ -43,7 +47,7 @@ class BorrowDirectController {
 						
 			response.setHeader("Content-Disposition", "attachment;filename=\"multiple_items.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
-			borrowDirectService.dumpDataMultipleItems(dateFrom, dateTo, cmd.itemTimes, response.outputStream)
+			borrowDirectService.dumpDataMultipleItems(dateFrom, dateTo, cmd.itemTimes, response.outputStream, serviceKey)
 			return null
 		}else{
 			request.dataDumpMultCommand = cmd
@@ -52,7 +56,7 @@ class BorrowDirectController {
 	}
 	def summary = {
 		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
-		def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear)
+		def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear, serviceKey)
 		data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
 		def model = [summaryData: data, 
 					reportName:"Summary for fiscal year " + data.fiscalYear]
@@ -62,7 +66,7 @@ class BorrowDirectController {
 	def lc_report = {
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(null)
+		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(null, serviceKey)
 		return [callNoCounts:counts!=null?counts.getCountPerBucket():[:], 
 			    callNoCountPerType:counts!=null?counts.getCountPerType():[:],
 				bucketItems: BucketService.getInstance().getBucketItems(), 
@@ -78,7 +82,7 @@ class BorrowDirectController {
 				if(params.Submit2 != null){
 					fiscalYear = 2011
 				}
-				def data = borrowDirectService.getSummaryDashboardData(libId, fiscalYear)
+				def data = borrowDirectService.getSummaryDashboardData(libId, fiscalYear, serviceKey)
 				data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
 				def model = [summaryData: data,
 							reportName:libName + ": Summary for fiscal year " + data.fiscalYear,
@@ -90,7 +94,7 @@ class BorrowDirectController {
 				def libId = cmd.library
 				def currentDate = Calendar.getInstance();
 				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-				CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(libId)
+				CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(libId, serviceKey)
 				def libName = Library.read(libId).getCatalogCodeDesc()
 				def model = [callNoCounts:counts!=null?counts.getCountPerBucket():[:],
 						callNoCountPerType:counts!=null?counts.getCountPerType():[:],
@@ -102,7 +106,7 @@ class BorrowDirectController {
 				def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
 				def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
 
-				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy)
+				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy, serviceKey)
 				def libName = Library.read(cmd.library).getCatalogCodeDesc()
 				def reportHeader = 'Unfilled requests for ' + libName + ' : ' + ReportGeneratorHelper.getStringValue(dateFrom) + ' - ' + ReportGeneratorHelper.getStringValue(dateTo) 
 				render(view:'unfilled_requests', model:[reportData: data, reportName:reportHeader])
@@ -112,6 +116,9 @@ class BorrowDirectController {
 			request.libReportCommand = cmd
 			render(view:'index', model:indexPageModel)
 		}
+	}
+	def historical_summary = {
+		render(view:'historical_summary', model:[])
 	}
 }
 

@@ -22,67 +22,74 @@ import org.hibernate.Session;
 *
 */
 class BorrowDirectService {
+	public static String BD_SERVICE_KEY = 'bd'
+	public static String EZB_SERVICE_KEY = 'ezb'
 	
 	DataSource dataSource
 	def config = ConfigurationHolder.config
 	
-    def dumpDataLibrary(library_id, from, to, outstream) {
+    def dumpDataLibrary(library_id, from, to, outstream, serviceKey) {
 		def reportGenerator = new LibraryDataReportGenerator();
-		runReport(reportGenerator,  config.queries.borrowdirect.dataDumpByLibrary, [from, to, library_id, library_id], outstream)
+		runReport(reportGenerator, prepareQuery(config.queries.borrowdirect.dataDumpByLibrary, serviceKey), [from, to, library_id, library_id], outstream)
     }
 	
-	def dumpDataMultipleItems(from, to, minTimes, outstream) {
+	def dumpDataMultipleItems(from, to, minTimes, outstream, serviceKey) {
 		def reportGenerator = new MultipleItemsDataReportGenerator();
-		runReport(reportGenerator,  config.queries.borrowdirect.dataDumpMultipleItems, [from, to, minTimes], outstream)
+		runReport(reportGenerator,  prepareQuery(config.queries.borrowdirect.dataDumpMultipleItems, serviceKey), [from, to, minTimes], outstream)
 	}
 	
-	def getSummaryDashboardData(libId, fiscalYear){
+	def getSummaryDashboardData(libId, fiscalYear, serviceKey){
 		Sql sql = new Sql(dataSource);
 		def result = [:]
 		def currentFiscalYear = fiscalYear;
+		Date currentFiscalYearEnd;
+		Date lastFiscalYearEnd;
 		if(currentFiscalYear == null){
 			def currentDate = Calendar.getInstance();
 			def currentYear = currentDate.get(Calendar.YEAR);
 			def currentMonth = currentDate.get(Calendar.MONTH);
 			currentFiscalYear = DateUtil.getFiscalYear(currentYear, currentMonth)
 			result.currentMonth = currentMonth
+			
+			lastFiscalYearEnd = DateUtil.getDate(currentYear-1, currentMonth,currentDate.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+			currentFiscalYearEnd = DateUtil.getDate(currentYear, currentMonth,currentDate.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
 		}else{
 			result.currentMonth = DateUtil.getFiscalYearEndMonth();
+			currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
+			lastFiscalYearEnd =  DateUtil.getFiscalYearEndDate(currentFiscalYear - 1)
 		}
 		
 		result.fiscalYear = currentFiscalYear
 		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
-		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
 	
 		def dates = [:]
 		dates.currentFiscalYear = [currentFiscalYearStart, currentFiscalYearEnd];
 		
-		dates.lastFiscalYear = [DateUtil.getFiscalYearStartDate(currentFiscalYear - 1),
-			 DateUtil.getFiscalYearEndDate(currentFiscalYear - 1)]
+		dates.lastFiscalYear = [DateUtil.getFiscalYearStartDate(currentFiscalYear - 1), lastFiscalYearEnd]
 		
-		loadDataPerLibrary(sql, true, result, dates, libId);
-		loadDataPerLibrary(sql, false, result, dates, libId);
+		loadDataPerLibrary(sql, true, result, dates, libId, serviceKey);
+		loadDataPerLibrary(sql, false, result, dates, libId, serviceKey);
 		if(libId != null){
-			loadPickupData(sql, result, dates.currentFiscalYear, libId)
-			loadShelvingData(sql, result, dates.currentFiscalYear, libId)
+			loadPickupData(sql, result, dates.currentFiscalYear, libId, serviceKey)
+			loadShelvingData(sql, result, dates.currentFiscalYear, libId, serviceKey)
 		}
 		log.debug(result)
 		return result
 	}
 	
-	def loadPickupData(sql, result, currentFiscalYearDates, libId){
-		def query = config.queries.borrowdirect.countsPerPickupLocations
+	def loadPickupData(sql, result, currentFiscalYearDates, libId, serviceKey){
+		def query = prepareQuery(config.queries.borrowdirect.countsPerPickupLocations, serviceKey)
 		def sqlParams = [currentFiscalYearDates[0], currentFiscalYearDates[1], libId]
 		result.pickupData = sql.rows(query, sqlParams)
 	}
 	
-	def loadShelvingData(sql, result, currentFiscalYearDates, libId){
-		def query = config.queries.borrowdirect.countsPerShelvingLocations
+	def loadShelvingData(sql, result, currentFiscalYearDates, libId, serviceKey){
+		def query = prepareQuery(config.queries.borrowdirect.countsPerShelvingLocations, serviceKey)
 		def sqlParams = [currentFiscalYearDates[0], currentFiscalYearDates[1], libId]
 		result.shelvingData = sql.rows(query, sqlParams)
 	}
 	
-	def getRequestedCallNoCounts(libId){
+	def getRequestedCallNoCounts(libId, serviceKey){
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
@@ -91,7 +98,7 @@ class BorrowDirectService {
 		Sql sql = new Sql(dataSource);
 		CallNoCounts counts;
 		def sqlParams = [currentFiscalYearStart, currentFiscalYearEnd]
-		def query = config.queries.borrowdirect.requestedCallNos
+		def query = prepareQuery(config.queries.borrowdirect.requestedCallNos, serviceKey)
 		if(libId != null){
 			query += " and " + config.borrowdirect.db.column.borrower + " = " + libId
 		}
@@ -102,7 +109,7 @@ class BorrowDirectService {
 		return counts
 	}
 	
-	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId){
+	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId, tablePrefix){
 		def libRoleColumn; 
 		def keyForSection;
 		def additionalCondition = ""
@@ -124,8 +131,8 @@ class BorrowDirectService {
 			keyForSection = 'lending'
 		}
 		
-		def allQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition)
-		def query = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryMonthlyFilled, libRoleColumn, additionalCondition)
+		def allQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition, tablePrefix)
+		def query = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryMonthlyFilled, libRoleColumn, additionalCondition, tablePrefix)
 
 		def allLibDataSection = getLibDataMap(-1l, result).get(keyForSection)
 		//currentFiscalYear
@@ -151,7 +158,7 @@ class BorrowDirectService {
 			}
 		})
 		//turnaround
-		def turnaroundQuery = getAdjustedQuery(config.queries.borrowdirect.turnaroundPerLibrary, libRoleColumn, additionalCondition)
+		def turnaroundQuery = getAdjustedQuery(config.queries.borrowdirect.turnaroundPerLibrary, libRoleColumn, additionalCondition, tablePrefix)
 		log.debug("Runnig query for turnaround: " + turnaroundQuery + " params="+sqlParams)
 		sql.eachRow(turnaroundQuery, sqlParams, {
 			def libData = getLibDataMap(it.getAt(0).longValue(), result)
@@ -178,7 +185,7 @@ class BorrowDirectService {
 			}
 		}else if(libId != null){
 			//lending: yearFillRate for lib
-			def unfilledReqsQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryUnfilled, libRoleColumn, additionalCondition)
+			def unfilledReqsQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibraryUnfilled, libRoleColumn, additionalCondition, tablePrefix)
 			def unfilledReqsParams = [dates.currentFiscalYear[0], dates.currentFiscalYear[1], libId] 
 			log.debug("Runnig query for yearFillRate: lending: " + unfilledReqsQuery + " params="+unfilledReqsParams)
 			sql.eachRow(unfilledReqsQuery,
@@ -212,9 +219,9 @@ class BorrowDirectService {
 		log.debug("Done for " + keyForSection)
 		return result
 	}
-	def getUnfilledRequests(dateFrom, dateTo, libId, orderBy){
+	def getUnfilledRequests(dateFrom, dateTo, libId, orderBy, serviceKey){
 		Sql sql = new Sql(dataSource);
-		def query = config.queries.borrowdirect.libraryUnfilledRequests + orderBy
+		def query = prepareQuery(config.queries.borrowdirect.libraryUnfilledRequests, serviceKey) + orderBy
 		def sqlParams = [dateFrom, dateTo, libId]
 		log.debug("Runnig query for unfilled requests " + query + "\nparams = " + sqlParams)
 		return sql.rows(query, sqlParams)
@@ -233,9 +240,13 @@ class BorrowDirectService {
 		}
 		return result
 	}
-	private String getAdjustedQuery(query, libRoleColumn, additionalCondition){
+	private String getAdjustedQuery(query, libRoleColumn, additionalCondition, tablePrefix){
 		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)
-		result.replaceAll("\\{add_condition\\}", additionalCondition)
+		result = result.replaceAll("\\{add_condition\\}", additionalCondition)
+		return prepareQuery(result, tablePrefix);
+	}
+	private String prepareQuery(query, tablePrefix){
+		return query.replaceAll("\\{table_prefix\\}", tablePrefix)
 	}
 	
 	private void runReport(reportGenerator, query, inputParams, outstream){
