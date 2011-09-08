@@ -109,14 +109,12 @@
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
-        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;  
-        <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>           
+        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>           
         </div>
         <hr/>
         <div  class="formRow">
        2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:
-        <g:link action="lc_report">Current Year</g:link>
-		<a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html">Historical</a> 
+        <g:link action="lc_report">Current Year</g:link>&nbsp;|&nbsp;<a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html">Historical</a> 
     	</div>
        </td>
   </tr>
