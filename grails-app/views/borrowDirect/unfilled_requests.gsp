@@ -18,7 +18,7 @@
 			</tr>
 			<g:each var="reportItem" status="i" in="${reportData}">
 				<tr class="${ (i % 2) == 0 ? 'even' : 'odd'}">
-					<td>${reportItem.lender}</td>
+					<td>${reportItem.lender != null ? reportItem.lender : 'N/A' }</td>
 					<td>${reportItem.title}</td>
 					<td>${reportItem.callNo}</td>
 					<td>${reportItem.publicationYear}</td>

@@ -118,7 +118,8 @@ class BorrowDirectController {
 		}
 	}
 	def historical_summary = {
-		render(view:'historical_summary', model:[])
+		def data = borrowDirectService.getHistoricalData(serviceKey)
+		render(view:'/bd_ezb/historical_summary', model:[reportData: data, reportName:"Historical Summary Dashboard"])
 	}
 }
 
@@ -132,7 +133,7 @@ class DataDumpCommand {
 	int to_month = -1
 	int to_day = -1
 	
-	String password
+	//String password
 	
 	static constraints = {
 		library(min:0)
@@ -144,10 +145,10 @@ class DataDumpCommand {
 		to_month(min:0, max:11)
 		to_day(min:01, max:31)
 		
-		password(validator: { val, obj ->
-			def realPassword = ConfigurationHolder.config.passwords[obj.library]
-			!StringUtils.isEmpty(val) && !StringUtils.isEmpty(realPassword) && DigestUtils.md5Hex(val) == realPassword
-		})
+//		password(validator: { val, obj ->
+//			def realPassword = ConfigurationHolder.config.passwords[obj.library]
+//			!StringUtils.isEmpty(val) && !StringUtils.isEmpty(realPassword) && DigestUtils.md5Hex(val) == realPassword
+//		})
 	}
 }
 

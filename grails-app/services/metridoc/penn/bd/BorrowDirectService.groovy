@@ -240,6 +240,57 @@ class BorrowDirectService {
 		}
 		return result
 	}
+	/**
+	 * structure {libId={'borrowing'=[2010=10, 2011=13]}, {'lending'=[2010=10, 2011=13]}}, 
+	 * 			 {-1={'borrowing'=[2010=10, 2011=13]}, {'lending'=[2010=10, 2011=13]}}
+	 * @param sql
+	 * @param isBorrowing
+	 * @param result
+	 * @param dates
+	 * @param libId
+	 * @param tablePrefix
+	 * @return
+	 */
+	def loadHistoricalDataPerLibrary(sql, isBorrowing, result, tablePrefix){
+		def libRoleColumn;
+		def keyForSection;
+		def additionalCondition = ""
+		if(isBorrowing){
+			libRoleColumn = config.borrowdirect.db.column.borrower
+			keyForSection = 'borrowing'
+		}else{
+			libRoleColumn = config.borrowdirect.db.column.lender
+			keyForSection = 'lending'
+		}
+		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLib, libRoleColumn, "", tablePrefix);
+		query = query.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
+		
+		log.debug("Runnig query for historical data: " + query)
+		sql.eachRow(query, [], {
+			def libData = getLibDataMapHistorical(it.getAt(0), result)
+			int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
+			libData.get(keyForSection).items.put(currentKey, it.requestsNum)
+			if(currentKey != -1 && currentKey < result.minFiscalYear){
+				result.minFiscalYear = currentKey
+			}
+		})
+	}
+	
+	def getHistoricalData(serviceKey){
+		def result = [:];
+		def currentDate = Calendar.getInstance();
+		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		//Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
+		Sql sql = new Sql(dataSource);
+		result.minFiscalYear = currentFiscalYear
+		
+		loadHistoricalDataPerLibrary(sql, true, result, serviceKey);
+		loadHistoricalDataPerLibrary(sql, false, result, serviceKey);
+		result.currentFiscalYear = currentFiscalYear
+		log.debug(result)
+		return result;
+	}
+	
 	private String getAdjustedQuery(query, libRoleColumn, additionalCondition, tablePrefix){
 		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)
 		result = result.replaceAll("\\{add_condition\\}", additionalCondition)
@@ -262,6 +313,12 @@ class BorrowDirectService {
 		if(container.get(libId) == null){
 			container.put(libId, ['borrowing':['currentFiscalYear':[:], 'lastFiscalYear':[:]], 
 				'lending':['currentFiscalYear':[:], 'lastFiscalYear':[:]]])
+		}
+		return container.get(libId)
+	}
+	private getLibDataMapHistorical(libId, container){
+		if(container.get(libId) == null){
+			container.put(libId, ['borrowing':[items:[:], fillRates:[:]],'lending':[items:[:], fillRates:[:]]]);
 		}
 		return container.get(libId)
 	}

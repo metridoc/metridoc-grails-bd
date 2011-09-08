@@ -61,11 +61,6 @@
 								To: <g:render
 									template="date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpCommand]" /> </div>
-								
-						<div class='formRow'>
-						<% def errorClass = dataDumpCommand.errors.hasFieldErrors("password") ? 'errorField' : ""; %>
-							Library ID: <input type="password" name="password" class="${errorClass}" />
-						</div>
 						<div class='formRow'>
 						<center>
 								<input type="submit" name="Submit" value="Submit">
@@ -114,9 +109,8 @@
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
-        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;
-        <g:link action="summary" params="[fiscalYear:2011]">Y 2011</g:link>&nbsp;|&nbsp;              
-        <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>
+        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;  
+        <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>           
         </div>
         <hr/>
         <div  class="formRow">
@@ -166,7 +160,6 @@ Summary Dashboard [filled request, filled rate and turnaround times]
 									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand]" /> </div>
 	 <div class='formRow'>
          <center> <input type="submit" name="Submit" value="Submit">
-         <input type="submit" name="Submit2" value="Submit2">
       <input type="reset" name="Reset" value="Reset"> </center>
   </div>
   </g:form>

@@ -1,3 +1,4 @@
+<%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,7 +16,7 @@
 		<tr class="header">
 			<!-- 500 -->
 			<td width="70%" bgcolor="#CC0000"><g:link action=""><span>Borrow
-					Direct Data Repository</span></g:link>
+					Direct Data Repository${ConfigurationHolder.config.datafarm.title.ext}</span></g:link>
 			</td><!-- 250 -->
 			<td width="30%" bgcolor="#333366" align="center"><span>
 					Penn Library DATA FARM</span>

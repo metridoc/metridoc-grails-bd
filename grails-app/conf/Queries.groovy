@@ -105,6 +105,14 @@ queries{
 			between ? and ? and bl.supplier_code = 'List Exhausted' and bl.borrower = ? and NOT (bl.borrower <=> bl.lender) 
 			and cn.holdings_seq = 1 group by bl.request_number order by 
 		'''
+		
+		historicalCountsPerLib = '''
+		select IFNULL({lib_role},-1) as {lib_role},
+		CASE WHEN MONTH(request_date)>={fy_start_month} THEN YEAR(request_date)+1
+		ELSE YEAR(request_date) END AS fiscal_year,
+		count(*) as requestsNum
+		from {table_prefix}_bibliography_load where NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) group by fiscal_year, {lib_role} WITH ROLLUP
+		'''
 	}
 }
 
