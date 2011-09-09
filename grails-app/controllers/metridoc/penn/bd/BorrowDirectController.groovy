@@ -99,12 +99,15 @@ class BorrowDirectController {
 				def libId = cmd.library
 				def currentDate = Calendar.getInstance();
 				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-				CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(libId, serviceKey)
+				def data = borrowDirectService.getRequestedCallNoCounts(libId, serviceKey, null)
+				CallNoCounts counts = data.counts;
 				def libName = Library.read(libId).getCatalogCodeDesc()
 				def model = [callNoCounts:counts!=null?counts.getCountPerBucket():[:],
 						callNoCountPerType:counts!=null?counts.getCountPerType():[:],
 						bucketItems: BucketService.getInstance().getBucketItems(),
-						reportName:libName + " : LC report for fiscal year " + currentFiscalYear]
+						//reportName:libName + " : LC report for fiscal year " + currentFiscalYear,
+						libName: libName,
+						reportFiscalYear: data.reportFiscalYear]
 				render(view:'lc_report', model:model)
 				
 			}else{

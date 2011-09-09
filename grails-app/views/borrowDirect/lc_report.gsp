@@ -14,7 +14,8 @@
       </g:each>
       </g:if>
 	</div>
-	<div style="text-align: center; margin-bottom:5px">LC report for fiscal year ${reportFiscalYear}</div>
+	<div style="text-align: center; margin-bottom:5px">
+	<g:if test="${libName != null}">${libName}&nbsp;:&nbsp;</g:if>LC report for fiscal year ${reportFiscalYear}</div>
 	<div style='font-style: italic;'>
 	Other=${callNoCountPerType.other}
 	:: Fordiss=${callNoCountPerType.fordiss}
