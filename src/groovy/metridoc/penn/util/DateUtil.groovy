@@ -31,6 +31,11 @@ class DateUtil {
 		return calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 	}
 	
+	public static int getCurrentFiscalYear(){
+		def currentDate = Calendar.getInstance();
+		return DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+	}
+	
 	private static Date getFiscalYearStartDate(int fiscalYear){
 		return getDateStartOfDay(fiscalYear - 1, FY_START_MONTH, 1)
 	}

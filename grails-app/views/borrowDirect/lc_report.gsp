@@ -9,6 +9,7 @@
 	<div class="bd_body">
 	<div style="text-align: right">
 	 <g:if test="${isHistorical}">
+	 <a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html" target="_lc_historical">Older Data</a>
 	 <g:each var="i" in="${(minFiscalYear .. currentFiscalYear-1)}">
 		 <g:link action="lc_report" params="[fiscalYear:i]">FY${ i }</g:link>
       </g:each>

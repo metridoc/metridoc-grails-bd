@@ -10,13 +10,16 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 
 class BorrowDirectController {
-	def indexPageModel = [sortByOptions:LibReportCommand.sortByOptions, showTopLinks:true]
 	def borrowDirectService
 	def serviceKey = BorrowDirectService.BD_SERVICE_KEY;
 	
-	
+	def getIndexPageModel(){
+		return [sortByOptions:LibReportCommand.sortByOptions, 
+				showTopLinks:true, 
+				currentFiscalYear: DateUtil.getCurrentFiscalYear()]
+	}
     def index = { 
-		return indexPageModel }
+		return getIndexPageModel() }
 	def lost_password = {
 		render(view:'lost_password', model:[])
 		//render(view:'/bd_ezb/bd_ezb', model:[])
@@ -36,7 +39,7 @@ class BorrowDirectController {
 			return null
 		}else{
 			request.dataDumpCommand = cmd
-			render(view:'index', model:indexPageModel)
+			render(view:'index', model:getIndexPageModel())
 		}
 	}
 	
@@ -51,7 +54,7 @@ class BorrowDirectController {
 			return null
 		}else{
 			request.dataDumpMultCommand = cmd
-			render(view:'index', model:indexPageModel)
+			render(view:'index', model:getIndexPageModel())
 		}
 	}
 	def summary = {
@@ -97,8 +100,8 @@ class BorrowDirectController {
 				
 			}else if(cmd.reportType == LibReportCommand.LC_CLASS){
 				def libId = cmd.library
-				def currentDate = Calendar.getInstance();
-				def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+				//def currentDate = Calendar.getInstance();
+				//def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 				def data = borrowDirectService.getRequestedCallNoCounts(libId, serviceKey, null)
 				CallNoCounts counts = data.counts;
 				def libName = Library.read(libId).getCatalogCodeDesc()
@@ -122,7 +125,7 @@ class BorrowDirectController {
 			return null
 		}else{
 			request.libReportCommand = cmd
-			render(view:'index', model:indexPageModel)
+			render(view:'index', model:getIndexPageModel())
 		}
 	}
 	def historical_summary = {
@@ -169,7 +172,7 @@ class DataDumpMultCommand {
 	int to_month = -1
 	int to_day = -1
 	
-	int itemTimes = 0
+	int itemTimes = 1
 	
 	static constraints = {
 		from_year(min:0)
@@ -179,6 +182,7 @@ class DataDumpMultCommand {
 		to_year(min:0)
 		to_month(min:0, max:11)
 		to_day(min:1, max:31)
+		itemTimes(min:0)
 	}
 }
 

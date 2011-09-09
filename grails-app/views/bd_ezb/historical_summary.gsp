@@ -9,7 +9,7 @@
 <body>
     <div class="body_bd">
      <div style="text-align: right;">
-     <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html" target="_historical">Older data</a>
+     <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html" target="_historical">Older Data</a>
      </div>
   <table class="list summary" cellspacing="0">
   <thead>

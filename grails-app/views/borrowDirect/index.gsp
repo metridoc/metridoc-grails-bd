@@ -2,6 +2,9 @@
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
 <%@page import="metridoc.penn.bd.Library"%>
+<%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
+<g:set var="minCalYear" value="${org.codehaus.groovy.grails.commons.ConfigurationHolder.config.datafarm.minCalYear }"/>
+
 <%@ page contentType="text/html;charset=ISO-8859-1"%>
 <g:set var="currentYear" value="${Calendar.getInstance().get(Calendar.YEAR)}" />
 <g:set var="libraries" value="${Library.list()}" />
@@ -57,10 +60,10 @@
 						<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpCommand]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpCommand, minYear:minCalYear]" />
 								To: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpCommand]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpCommand, minYear:minCalYear]" /> </div>
 						<div class='formRow'>
 						<center>
 								<input type="submit" name="Submit" value="Submit">
@@ -81,10 +84,10 @@
 						<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpMultCommand]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpMultCommand, minYear:minCalYear]" />
 								To: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpMultCommand]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpMultCommand, minYear:minCalYear]" /> </div>
 								
 						<div class='formRow'>
 						<% errorClass = dataDumpMultCommand.errors.hasFieldErrors("itemTimes") ? 'errorField' : ""; %>
@@ -109,12 +112,12 @@
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
-        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<a href="http://datafarm.library.upenn.edu/bdez/BDhist.html">Historical</a>           
+        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<g:link action="historical_summary">Historical</g:link>           
         </div>
         <hr/>
         <div  class="formRow">
        2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:
-        <g:link action="lc_report">Current Year</g:link>&nbsp;|&nbsp;<a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html">Historical</a> 
+        <g:link action="lc_report">Current Year</g:link>&nbsp;|&nbsp;<g:link action="lc_report" params="[fiscalYear:currentFiscalYear-1]">Historical</g:link> 
     	</div>
        </td>
   </tr>
@@ -152,10 +155,10 @@ Summary Dashboard [filled request, filled rate and turnaround times]
  	<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: libReportCommand]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: libReportCommand, minYear:minCalYear]" />
 								To: <g:render
 									template="date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand, minYear:minCalYear]" /> </div>
 	 <div class='formRow'>
          <center> <input type="submit" name="Submit" value="Submit">
       <input type="reset" name="Reset" value="Reset"> </center>

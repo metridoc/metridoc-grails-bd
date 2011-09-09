@@ -13,5 +13,5 @@
    	errorClass = commandBean.errors.hasFieldErrors(fieldNamePrefix +"_year") ? 'errorField' : ""; 
    	val = commandBean.(fieldNamePrefix +"_year");
 %>
-<g:select name="${fieldNamePrefix}_year" from="${2000..currentYear}" value="${val}"
+<g:select name="${fieldNamePrefix}_year" from="${minYear..currentYear}" value="${val}"
           noSelection="['-1':'Year']" class="${errorClass}"/>

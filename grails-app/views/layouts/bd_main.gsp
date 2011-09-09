@@ -15,7 +15,7 @@
 	<table class="mainContainer">
 		<tr class="header">
 			<!-- 500 -->
-			<td width="70%" bgcolor="#CC0000"><g:link action=""><span>Borrow
+			<td width="70%" bgcolor="#CC0000" align="left"><g:link action=""><span>Borrow
 					Direct Data Repository${ConfigurationHolder.config.datafarm.title.ext}</span></g:link>
 			</td><!-- 250 -->
 			<td width="30%" bgcolor="#333366" align="center"><span>
@@ -26,9 +26,7 @@
     <tr>
       <td align="center" colspan="2">
        <g:if test="${showTopLinks}">
-      <a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>
-      &nbsp;|&nbsp;&nbsp;
-      <g:link action="notes">Notes</g:link>
+      <a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>&nbsp;|&nbsp;<g:link action="notes">Notes</g:link>
       </g:if>
       <g:elseif test="${reportName != null}">
       	${reportName}

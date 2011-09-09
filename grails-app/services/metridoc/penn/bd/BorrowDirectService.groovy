@@ -28,7 +28,7 @@ class BorrowDirectService {
 	DataSource dataSource
 	def config = ConfigurationHolder.config
 	
-	def minFiscalYear = config.datafarm.bd.minFiscalYear
+	def minFiscalYear = config.datafarm.minFiscalYear
 	
     def dumpDataLibrary(library_id, from, to, outstream, serviceKey) {
 		def reportGenerator = new LibraryDataReportGenerator();
@@ -92,8 +92,7 @@ class BorrowDirectService {
 	}
 	
 	def getRequestedCallNoCounts(libId, serviceKey, paramFiscalYear){
-		def currentDate = Calendar.getInstance();
-		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		def currentFiscalYear = DateUtil.getCurrentFiscalYear()
 		def fiscalYear = paramFiscalYear!=null?paramFiscalYear:currentFiscalYear;
 		
 		Date fiscalYearStart = DateUtil.getFiscalYearStartDate(fiscalYear)
@@ -306,11 +305,10 @@ class BorrowDirectService {
 	
 	def getHistoricalData(serviceKey){
 		def result = [:];
-		def currentDate = Calendar.getInstance();
-		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
+		def currentFiscalYear = DateUtil.getCurrentFiscalYear()
 		//Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
 		Sql sql = new Sql(dataSource);
-		result.minFiscalYear = minFiscalYear;//currentFiscalYear
+		result.minFiscalYear = minFiscalYear;
 		
 		loadHistoricalDataPerLibrary(sql, true, result, serviceKey);
 		loadHistoricalDataPerLibrary(sql, false, result, serviceKey);
