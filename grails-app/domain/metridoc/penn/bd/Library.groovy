@@ -6,8 +6,9 @@ class Library {
 	String catalogCodeDesc
 	
 	static mapping = {
-		table 'bd_catalog_code'
-		id column: 'catalog_library_id'
+		table 'bd_institution'
+		id column: 'library_id'
+		catalogCodeDesc column: 'institution'
 		version false
 	}
 }
