@@ -25,7 +25,7 @@
 		</tr>
     <tr>
       <td align="center" colspan="2">
-       <g:if test="${showToplinks}">
+       <g:if test="${showTopLinks}">
       <a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>
       &nbsp;|&nbsp;&nbsp;
       <g:link action="notes">Notes</g:link>
