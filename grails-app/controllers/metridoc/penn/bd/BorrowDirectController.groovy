@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 
 class BorrowDirectController {
-	def indexPageModel = [sortByOptions:LibReportCommand.sortByOptions]
+	def indexPageModel = [sortByOptions:LibReportCommand.sortByOptions, showTopLinks:true]
 	def borrowDirectService
 	def serviceKey = BorrowDirectService.BD_SERVICE_KEY;
 	
@@ -64,13 +64,18 @@ class BorrowDirectController {
 	}
 	
 	def lc_report = {
-		def currentDate = Calendar.getInstance();
-		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-		CallNoCounts counts = borrowDirectService.getRequestedCallNoCounts(null, serviceKey)
+		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
+		def data =  borrowDirectService.getRequestedCallNoCounts(null, serviceKey, fiscalYear)
+		CallNoCounts counts = data.counts
+		boolean isHistorical = (data.reportFiscalYear != data.currentFiscalYear)
 		return [callNoCounts:counts!=null?counts.getCountPerBucket():[:], 
 			    callNoCountPerType:counts!=null?counts.getCountPerType():[:],
 				bucketItems: BucketService.getInstance().getBucketItems(), 
-				reportName:"LC report for fiscal year " + currentFiscalYear]
+				//reportName:"LC report for fiscal year " + data.reportFiscalYear, 
+				currentFiscalYear: data.currentFiscalYear,
+				minFiscalYear: data.minFiscalYear,
+				reportFiscalYear: data.reportFiscalYear,
+				isHistorical:isHistorical]
 	}
 	
 	def lib_data_summary = { LibReportCommand cmd ->	

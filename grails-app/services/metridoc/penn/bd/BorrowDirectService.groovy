@@ -28,6 +28,8 @@ class BorrowDirectService {
 	DataSource dataSource
 	def config = ConfigurationHolder.config
 	
+	def minFiscalYear = config.datafarm.bd.minFiscalYear
+	
     def dumpDataLibrary(library_id, from, to, outstream, serviceKey) {
 		def reportGenerator = new LibraryDataReportGenerator();
 		runReport(reportGenerator, prepareQuery(config.queries.borrowdirect.dataDumpByLibrary, serviceKey), [from, to, library_id, library_id], outstream)
@@ -89,15 +91,17 @@ class BorrowDirectService {
 		result.shelvingData = sql.rows(query, sqlParams)
 	}
 	
-	def getRequestedCallNoCounts(libId, serviceKey){
+	def getRequestedCallNoCounts(libId, serviceKey, paramFiscalYear){
 		def currentDate = Calendar.getInstance();
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
-		Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
-		Date currentFiscalYearEnd = DateUtil.getFiscalYearEndDate(currentFiscalYear)
+		def fiscalYear = paramFiscalYear!=null?paramFiscalYear:currentFiscalYear;
+		
+		Date fiscalYearStart = DateUtil.getFiscalYearStartDate(fiscalYear)
+		Date fiscalYearEnd = DateUtil.getFiscalYearEndDate(fiscalYear)
 		
 		Sql sql = new Sql(dataSource);
 		CallNoCounts counts;
-		def sqlParams = [currentFiscalYearStart, currentFiscalYearEnd]
+		def sqlParams = [fiscalYearStart, fiscalYearEnd]
 		def query = prepareQuery(config.queries.borrowdirect.requestedCallNos, serviceKey)
 		if(libId != null){
 			query += " and " + config.borrowdirect.db.column.borrower + " = " + libId
@@ -106,7 +110,10 @@ class BorrowDirectService {
 		ResultSet resultSet = sql.query(query, sqlParams, {
 			counts = CallNoService.getCounts(it)
 		})
-		return counts
+		return [counts: counts, 
+				minFiscalYear: minFiscalYear, 
+				reportFiscalYear: fiscalYear, 
+				currentFiscalYear: currentFiscalYear]
 	}
 	
 	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId, tablePrefix){
@@ -262,18 +269,39 @@ class BorrowDirectService {
 			libRoleColumn = config.borrowdirect.db.column.lender
 			keyForSection = 'lending'
 		}
-		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLib, libRoleColumn, "", tablePrefix);
+		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibFilled, libRoleColumn, "", tablePrefix);
 		query = query.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
+		
+		def allQuery = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibAll, libRoleColumn, "", tablePrefix);
+		allQuery = allQuery.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
 		
 		log.debug("Runnig query for historical data: " + query)
 		sql.eachRow(query, [], {
 			def libData = getLibDataMapHistorical(it.getAt(0), result)
 			int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
 			libData.get(keyForSection).items.put(currentKey, it.requestsNum)
-			if(currentKey != -1 && currentKey < result.minFiscalYear){
-				result.minFiscalYear = currentKey
-			}
+//			if(currentKey != -1 && currentKey < result.minFiscalYear){
+//				result.minFiscalYear = currentKey
+//			}
 		})
+		
+		if(isBorrowing){
+			//borrowing:yearFillRate
+			log.debug("Runnig query for historical fillRates: " + allQuery )
+			sql.eachRow(allQuery,
+				[], {
+				def libData = getLibDataMap(it.getAt(0), result)
+				def currentMap = libData.get(keyForSection)
+				int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
+				
+				int filledReqs = currentMap.items.get(currentKey);
+				if( filledReqs == null){
+					filledReqs = 0;
+				}
+				currentMap.fillRates.put(currentKey, (it.requestsNum != 0?
+				filledReqs/(float)it.requestsNum :-1))
+			})
+		}
 	}
 	
 	def getHistoricalData(serviceKey){
@@ -282,7 +310,7 @@ class BorrowDirectService {
 		def currentFiscalYear = DateUtil.getFiscalYear(currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH))
 		//Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
 		Sql sql = new Sql(dataSource);
-		result.minFiscalYear = currentFiscalYear
+		result.minFiscalYear = minFiscalYear;//currentFiscalYear
 		
 		loadHistoricalDataPerLibrary(sql, true, result, serviceKey);
 		loadHistoricalDataPerLibrary(sql, false, result, serviceKey);

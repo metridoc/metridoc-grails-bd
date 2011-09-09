@@ -7,6 +7,14 @@
 </head>
 <body>
 	<div class="bd_body">
+	<div style="text-align: right">
+	 <g:if test="${isHistorical}">
+	 <g:each var="i" in="${(minFiscalYear .. currentFiscalYear-1)}">
+		 <g:link action="lc_report" params="[fiscalYear:i]">FY${ i }</g:link>
+      </g:each>
+      </g:if>
+	</div>
+	<div style="text-align: center; margin-bottom:5px">LC report for fiscal year ${reportFiscalYear}</div>
 	<div style='font-style: italic;'>
 	Other=${callNoCountPerType.other}
 	:: Fordiss=${callNoCountPerType.fordiss}
