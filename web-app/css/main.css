@@ -339,3 +339,8 @@ th.desc a {
 	vertical-align: middle;
 	background-image:none;
 }
+.pageTitle{
+	text-align: center;
+	margin-bottom:10px;
+	font-weight: bold;
+}

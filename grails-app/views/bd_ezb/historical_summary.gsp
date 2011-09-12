@@ -11,6 +11,7 @@
      <div style="text-align: right;">
      <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html" target="_historical">Older Data</a>
      </div>
+     <div class="pageTitle">Historical Summary Dashboard</div>
   <table class="list summary" cellspacing="0">
   <thead>
     <tr>

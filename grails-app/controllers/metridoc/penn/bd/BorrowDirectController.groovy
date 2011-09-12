@@ -130,7 +130,7 @@ class BorrowDirectController {
 	}
 	def historical_summary = {
 		def data = borrowDirectService.getHistoricalData(serviceKey)
-		render(view:'/bd_ezb/historical_summary', model:[reportData: data, reportName:"Historical Summary Dashboard"])
+		render(view:'/bd_ezb/historical_summary', model:[reportData: data])
 	}
 }
 

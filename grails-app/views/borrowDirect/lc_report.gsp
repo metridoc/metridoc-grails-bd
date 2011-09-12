@@ -11,11 +11,12 @@
 	 <g:if test="${isHistorical}">
 	 <a href="http://datafarm.library.upenn.edu/BDLCAllLibrary10.html" target="_lc_historical">Older Data</a>
 	 <g:each var="i" in="${(minFiscalYear .. currentFiscalYear-1)}">
-		 <g:link action="lc_report" params="[fiscalYear:i]">FY${ i }</g:link>
+		 |&nbsp;<g:if test="${i != reportFiscalYear}"><g:link action="lc_report" params="[fiscalYear:i]">FY${ i }</g:link></g:if>
+		 <g:else>FY${ i }</g:else>
       </g:each>
       </g:if>
 	</div>
-	<div style="text-align: center; margin-bottom:5px">
+	<div class="pageTitle">
 	<g:if test="${libName != null}">${libName}&nbsp;:&nbsp;</g:if>LC report for fiscal year ${reportFiscalYear}</div>
 	<div style='font-style: italic;'>
 	Other=${callNoCountPerType.other}

@@ -23,17 +23,18 @@
 			</td>
 
 		</tr>
+		<g:if test="${showTopLinks || reportName != null}">
     <tr>
       <td align="center" colspan="2">
        <g:if test="${showTopLinks}">
       <a href="mailto:datafarm@pobox.upenn.edu">Report a Problem</a>&nbsp;|&nbsp;<g:link action="notes">Notes</g:link>
       </g:if>
       <g:elseif test="${reportName != null}">
-      	${reportName}
+      	<div class="pageTitle" style="margin-bottom:0">${reportName}</div>
       </g:elseif>
       </td>
-      
     </tr>
+    </g:if>
     <tr>
     <td colspan="2" align="center">
     	<g:layoutBody />
