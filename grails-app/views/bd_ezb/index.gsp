@@ -1,13 +1,11 @@
 <%@page import="metridoc.penn.bd.LibReportCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
-<%@page import="metridoc.penn.bd.Library"%>
 <%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
 <g:set var="minCalYear" value="${org.codehaus.groovy.grails.commons.ConfigurationHolder.config.datafarm.minCalYear }"/>
 
 <%@ page contentType="text/html;charset=ISO-8859-1"%>
 <g:set var="currentYear" value="${Calendar.getInstance().get(Calendar.YEAR)}" />
-<g:set var="libraries" value="${Library.list()}" />
 <g:set var="dataDumpCommand" value="${request.dataDumpCommand != null? request.dataDumpCommand:new DataDumpCommand()}" />
 <g:set var="dataDumpMultCommand" value="${request.dataDumpMultCommand != null? request.dataDumpMultCommand:new DataDumpMultCommand()}" />
 <g:set var="libReportCommand" value="${request.libReportCommand != null ? request.libReportCommand: new LibReportCommand()}" />
@@ -54,15 +52,15 @@
 						</div>
 						<div class='formRow'>
 							Data For:
-							<g:select name="library" from="${libraries}" value="${dataDumpCommand.library}" optionKey="id"
-									optionValue="catalogCodeDesc" /> 
+							<g:select name="library" from="${libraries}" value="${dataDumpCommand.library}" optionKey="library_id"
+									optionValue="institution" /> 
 						</div>
 						<div class='formRow'>
 						Specify Dates: From: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpCommand, minYear:minCalYear]" />
 								To: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpCommand, minYear:minCalYear]" /> </div>
 						<div class='formRow'>
 						<center>
@@ -83,10 +81,10 @@
 						</div>
 						<div class='formRow'>
 						Specify Dates: From: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpMultCommand, minYear:minCalYear]" />
 								To: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpMultCommand, minYear:minCalYear]" /> </div>
 								
 						<div class='formRow'>
@@ -129,8 +127,8 @@
     <td>
     <g:form name="lib_data_summary_form" method="post" action="lib_data_summary">
 		<div class='formRow'>Select Your Library: 
-              <g:select name="library" from="${libraries}" value="${libReportCommand.library}" optionKey="id"
-									optionValue="catalogCodeDesc" /> 
+              <g:select name="library" from="${libraries}" value="${libReportCommand.library}" optionKey="library_id"
+									optionValue="institution" /> 
 				</div>				
 									<hr/>
 		<div class='formRow'>
@@ -154,10 +152,10 @@ Summary Dashboard [filled request, filled rate and turnaround times]
               </div>
  	<div class='formRow'>
 						Specify Dates: From: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: libReportCommand, minYear:minCalYear]" />
 								To: <g:render
-									template="date_chooser"
+									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand, minYear:minCalYear]" /> </div>
 	 <div class='formRow'>
          <center> <input type="submit" name="Submit" value="Submit">

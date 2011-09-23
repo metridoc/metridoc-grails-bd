@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=ISO-8859-1" %>
-<g:set var="libraries" value="${metridoc.penn.bd.Library.list()}" />
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
@@ -35,7 +34,7 @@
     </thead>
     <tbody>
      <g:set var="currentDataMap" value="${reportData.get(-1l) != null ? reportData.get(-1l).borrowing: [:]}" />
-    <g:render template="historical_summary_row"
+    <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
 				libName: 'All Libraries',
@@ -43,11 +42,11 @@
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" /> 
 <g:each var="library" status="i" in="${libraries}">
-   <g:set var="currentDataMap" value="${reportData.get(library.getId().longValue()) != null ? reportData.get(library.getId().longValue()).borrowing: [:]}" />
-     <g:render template="historical_summary_row"
+   <g:set var="currentDataMap" value="${reportData.get(library.library_id.longValue()) != null ? reportData.get(library.library_id.longValue()).borrowing: [:]}" />
+     <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:(i+1), 
-				libName: library.catalogCodeDesc,
+				libName: library.institution,
 				lending: false,
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" />
@@ -77,7 +76,7 @@
     </thead>
     <tbody>
      <g:set var="currentDataMap" value="${reportData.get(-1l) != null ? reportData.get(-1l).lending: [:]}" />
-    <g:render template="historical_summary_row"
+    <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
 				libName: 'All Libraries',
@@ -85,11 +84,11 @@
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" /> 
 <g:each var="library" status="i" in="${libraries}">
-   <g:set var="currentDataMap" value="${reportData.get(library.getId().longValue()) != null ? reportData.get(library.getId().longValue()).lending: [:]}" />
-     <g:render template="historical_summary_row"
+   <g:set var="currentDataMap" value="${reportData.get(library.library_id.longValue()) != null ? reportData.get(library.library_id.longValue()).lending: [:]}" />
+     <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:(i+1), 
-				libName: library.catalogCodeDesc,
+				libName: library.institution,
 				lending: true,
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" />

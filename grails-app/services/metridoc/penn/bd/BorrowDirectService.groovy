@@ -317,6 +317,18 @@ class BorrowDirectService {
 		return result;
 	}
 	
+	def getLibraryList(serviceKey){
+		Sql sql = new Sql(dataSource);
+		def query = prepareQuery(config.queries.borrowdirect.libraryList, serviceKey)
+		return sql.rows(query, [])
+	}
+	
+	def getLibraryById(serviceKey, libId){
+		Sql sql = new Sql(dataSource);
+		def query = prepareQuery(config.queries.borrowdirect.libraryById, serviceKey)
+		return sql.firstRow(query, [libId])
+	}
+	
 	private String getAdjustedQuery(query, libRoleColumn, additionalCondition, tablePrefix){
 		def result = query.replaceAll("\\{lib_role\\}", libRoleColumn)
 		result = result.replaceAll("\\{add_condition\\}", additionalCondition)

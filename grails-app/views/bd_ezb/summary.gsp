@@ -1,7 +1,6 @@
 <%@page import="metridoc.penn.util.DateUtil"%>
-<%@page import="metridoc.penn.bd.Library"%>
 <%@ page contentType="text/html;charset=ISO-8859-1" %>
-<g:set var="libraries" value="${metridoc.penn.bd.Library.list()}" />
+
 <g:set var="monthsOrder" value="${summaryData.displayMonthsOrder}" />
 <html>
 <head>
@@ -38,7 +37,7 @@
     </thead>
     <tbody>
      <g:set var="currentDataMap" value="${summaryData.get(-1l) != null ? summaryData.get(-1l).borrowing: [:]}" />
-    <g:render template="summary_row"
+    <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
 				libName: 'All Libraries',
@@ -46,12 +45,12 @@
 				monthsOrder:monthsOrder]" />
 <g:set var="rowOffset" value="${0}"/>    
 <g:each var="library" status="i" in="${libraries}">
-<g:if test="${libraryId == null || libraryId != library.getId() }">
-    <g:set var="currentDataMap" value="${summaryData.get(library.getId().longValue()) != null ? summaryData.get(library.getId().longValue()).borrowing: [:]}" />
-     <g:render template="summary_row"
+<g:if test="${libraryId == null || libraryId != library.library_id }">
+    <g:set var="currentDataMap" value="${summaryData.get(library.library_id.longValue()) != null ? summaryData.get(library.library_id.longValue()).borrowing: [:]}" />
+     <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:(i+1-rowOffset), 
-				libName: library.catalogCodeDesc,
+				libName: library.institution,
 				lending: false,
 				monthsOrder:monthsOrder]" />
 </g:if>
@@ -110,7 +109,7 @@
     </thead>
     <tbody>
     <g:set var="currentDataMap" value="${summaryData.get(-1l) != null ? summaryData.get(-1l).lending: [:]}" />
-    <g:render template="summary_row"
+    <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
 				libName: 'All Libraries',
@@ -119,12 +118,12 @@
     
 <g:set var="rowOffset" value="${0}"/>    
 <g:each var="library" status="i" in="${libraries}">
-<g:if test="${libraryId == null || libraryId != library.getId() }">
-    <g:set var="currentDataMap" value="${summaryData.get(library.getId().longValue()) != null ? summaryData.get(library.getId().longValue()).lending: [:]}" />
-     <g:render template="summary_row"
+<g:if test="${libraryId == null || libraryId != library.library_id }">
+    <g:set var="currentDataMap" value="${summaryData.get(library.library_id.longValue()) != null ? summaryData.get(library.library_id.longValue()).lending: [:]}" />
+     <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:(i+1-rowOffset), 
-				libName: library.catalogCodeDesc,
+				libName: library.institution,
 				lending: true,
 				monthsOrder:monthsOrder]" />
 </g:if>
