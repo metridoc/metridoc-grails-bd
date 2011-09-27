@@ -1,8 +1,15 @@
 <%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
+<%@page import="metridoc.penn.bd.BorrowDirectService"%>
+<g:set var="serviceName" value="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)?"E-ZBorrow":"BorrowDirect"}"/>
 <!DOCTYPE html>
 <html>
 <head>
-<title><g:layoutTitle default="Datafarm" />
+<title>
+<g:if test="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)}">
+			<g:layoutTitle default="E-ZBorrow" /></g:if>
+			<g:else><g:layoutTitle default="BorrowDirect" /></g:else>
+
+
 </title>
 <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}" />
 <link rel="shortcut icon"
@@ -15,8 +22,11 @@
 	<table class="mainContainer">
 		<tr class="header">
 			<!-- 500 -->
-			<td width="70%" bgcolor="#CC0000" align="left"><g:link action=""><span>Borrow
-					Direct Data Repository${ConfigurationHolder.config.datafarm.title.ext}</span></g:link>
+			<td width="70%" bgcolor="#CC0000" align="left"><g:link action=""><span>
+			<g:if test="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)}">
+			E-ZBorrow</g:if>
+			<g:else>BorrowDirect</g:else>
+			 Data Repository${ConfigurationHolder.config.datafarm.title.ext}</span></g:link>
 			</td><!-- 250 -->
 			<td width="30%" bgcolor="#333366" align="center"><span>
 					Penn Library DATA FARM</span>

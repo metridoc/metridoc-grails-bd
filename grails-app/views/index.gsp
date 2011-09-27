@@ -14,9 +14,8 @@
            <div id="controllerList" class="dialog">
                 <h2>Datafarm Available Reports:</h2>
                 <ul>
-                    <g:each var="c" in="${grailsApplication.controllerClasses.sort { it.fullName } }">
-                        <li class="controller"><g:link controller="${c.logicalPropertyName}">${c.logicalPropertyName}</g:link></li>
-                    </g:each>
+                	<li class="controller"> <g:link controller="borrowDirect">BorrowDirect</g:link></li>
+                	<li class="controller"> <g:link controller="EZBorrow">E-ZBorrow</g:link></li>
                 </ul>
             </div>
         </div>

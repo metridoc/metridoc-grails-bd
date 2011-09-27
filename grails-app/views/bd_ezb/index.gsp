@@ -13,7 +13,6 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 <meta name="layout" content="bd_main" />
-<title>BorrowDirect Data Repository</title>
 <script>
 	function selectionChanged(val){
 		var disabledVal = (val == ${LibReportCommand.UNFILLED_REQUESTS}) ? '':'disabled';

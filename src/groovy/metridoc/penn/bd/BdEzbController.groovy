@@ -17,7 +17,8 @@ class BdEzbController {
 		return [sortByOptions:LibReportCommand.sortByOptions, 
 				showTopLinks:true, 
 				currentFiscalYear: DateUtil.getCurrentFiscalYear(), 
-				libraries: borrowDirectService.getLibraryList(serviceKey)]
+				libraries: borrowDirectService.getLibraryList(serviceKey),
+				serviceKey:serviceKey]
 	}
 	
     def index = { 
@@ -26,10 +27,10 @@ class BdEzbController {
 	}
 	
 	def lost_password = {
-		render(view:'/bd_ezb/lost_password', model:[])
+		render(view:'/bd_ezb/lost_password', model:[serviceKey:serviceKey])
 	}
 	def notes = {
-		render(view:'/bd_ezb/notes', model:[])
+		render(view:'/bd_ezb/notes', model:[serviceKey:serviceKey])
 	}
 	
 	def data_dump = { DataDumpCommand cmd ->
@@ -67,7 +68,8 @@ class BdEzbController {
 		data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
 		def model = [summaryData: data, 
 					reportName:"Summary for fiscal year " + data.fiscalYear,
-					libraries: borrowDirectService.getLibraryList(serviceKey)]
+					libraries: borrowDirectService.getLibraryList(serviceKey),
+					serviceKey:serviceKey]
 		render(view:'/bd_ezb/summary', model:model)
 	}
 	
@@ -83,7 +85,8 @@ class BdEzbController {
 				currentFiscalYear: data.currentFiscalYear,
 				minFiscalYear: data.minFiscalYear,
 				reportFiscalYear: data.reportFiscalYear,
-				isHistorical:isHistorical]
+				isHistorical:isHistorical,
+				serviceKey:serviceKey]
 		render(view:'/bd_ezb/lc_report', model:model)
 	}
 	
@@ -101,7 +104,8 @@ class BdEzbController {
 				def model = [summaryData: data,
 							reportName:libName + ": Summary for fiscal year " + data.fiscalYear,
 							libraryId: libId,
-							libraries: borrowDirectService.getLibraryList(serviceKey)]
+							libraries: borrowDirectService.getLibraryList(serviceKey),
+							serviceKey:serviceKey]
 				render(view:'/bd_ezb/summary', model:model)
 				
 			}else if(cmd.reportType == LibReportCommand.LC_CLASS){
@@ -113,7 +117,8 @@ class BdEzbController {
 						callNoCountPerType:counts!=null?counts.getCountPerType():[:],
 						bucketItems: BucketService.getInstance().getBucketItems(),
 						libName: libName,
-						reportFiscalYear: data.reportFiscalYear]
+						reportFiscalYear: data.reportFiscalYear,
+						serviceKey:serviceKey]
 				render(view:'/bd_ezb/lc_report', model:model)
 				
 			}else{
@@ -123,7 +128,7 @@ class BdEzbController {
 				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy, serviceKey)
 				def libName = borrowDirectService.getLibraryById(serviceKey, cmd.library).institution//Library.read(cmd.library).getCatalogCodeDesc()
 				def reportHeader = 'Unfilled requests for ' + libName + ' : ' + ReportGeneratorHelper.getStringValue(dateFrom) + ' - ' + ReportGeneratorHelper.getStringValue(dateTo) 
-				render(view:'/bd_ezb/unfilled_requests', model:[reportData: data, reportName:reportHeader])
+				render(view:'/bd_ezb/unfilled_requests', model:[reportData: data, reportName:reportHeader, serviceKey:serviceKey])
 			}
 			return null
 		}else{
@@ -134,7 +139,7 @@ class BdEzbController {
 	def historical_summary = {
 		def data = borrowDirectService.getHistoricalData(serviceKey)
 		render(view:'/bd_ezb/historical_summary', model:[reportData: data,
-			libraries: borrowDirectService.getLibraryList(serviceKey)])
+			libraries: borrowDirectService.getLibraryList(serviceKey), serviceKey:serviceKey])
 	}
 }
 
