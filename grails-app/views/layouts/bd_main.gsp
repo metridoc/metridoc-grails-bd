@@ -1,6 +1,5 @@
 <%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
 <%@page import="metridoc.penn.bd.BorrowDirectService"%>
-<g:set var="serviceName" value="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)?"E-ZBorrow":"BorrowDirect"}"/>
 <!DOCTYPE html>
 <html>
 <head>

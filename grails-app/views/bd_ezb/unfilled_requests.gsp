@@ -28,7 +28,7 @@
 		</table>
 		</g:if>
 		<g:else>
-			<div>There is no unfilled requests for requested date range.</div>
+			<div>There are no unfilled requests for requested date range.</div>
 		</g:else>
 	</div>
 </body>

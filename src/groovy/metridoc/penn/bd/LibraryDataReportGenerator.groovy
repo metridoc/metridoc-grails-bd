@@ -27,6 +27,7 @@ class LibraryDataReportGenerator {
 		"SHIP DATE",
 		"RECEIVED DATE",
 		"STATUS",
+		"SUPPLIER_CODE",
 		"PATRON TYPE",
 		"AUTHOR",
 		"TITLE",
@@ -80,6 +81,8 @@ class LibraryDataReportGenerator {
 		addCell(row, currentRowData.processDate);
 		//status
 		addCell(row, ReportGeneratorHelper.getStatus(currentRowData.isUnfilled));//currentRowData.supplierCode));
+		//supplier code - do not include List exhausted
+		addCell(row, currentRowData.isUnfilled?"":currentRowData.supplierCode);
 		//patron type
 		addCell(row, currentRowData.patronType);
 		//author
