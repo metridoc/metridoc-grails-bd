@@ -121,7 +121,7 @@ queries{
 		count(*) as requestsNum
 		from {table_prefix}_bibliography where NOT (borrower <=> lender) group by fiscal_year, {lib_role} WITH ROLLUP
 		'''
-		libraryList = '''select * from {table_prefix}_institution'''
+		libraryList = '''select * from {table_prefix}_institution order by institution'''
 		libraryById = '''select * from {table_prefix}_institution where library_id=?'''
 	}
 }
