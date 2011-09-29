@@ -27,7 +27,7 @@ class LibraryDataReportGenerator {
 		"SHIP DATE",
 		"RECEIVED DATE",
 		"STATUS",
-		"SUPPLIER_CODE",
+		"SUPPLIER CODE",
 		"PATRON TYPE",
 		"AUTHOR",
 		"TITLE",
