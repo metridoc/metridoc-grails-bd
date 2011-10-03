@@ -307,7 +307,7 @@ class BorrowDirectService {
 			log.debug("Runnig query for historical fillRates: " + allQuery )
 			sql.eachRow(allQuery,
 				[], {
-				def libData = getLibDataMap(it.getAt(0), result)
+				def libData = getLibDataMapHistorical(it.getAt(0), result)
 				def currentMap = libData.get(keyForSection)
 				int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
 				
