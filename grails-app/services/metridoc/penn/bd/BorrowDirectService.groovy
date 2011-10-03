@@ -25,23 +25,35 @@ class BorrowDirectService {
 	public static String BD_SERVICE_KEY = 'bd'
 	public static String EZB_SERVICE_KEY = 'ezb'
 	
-	DataSource dataSource
+	DataSource ezbDataSource
+	DataSource bdDataSource
+	
 	def config = ConfigurationHolder.config
 	
 	def minFiscalYear = config.datafarm.minFiscalYear
 	
+	def getSql(serviceKey){
+		if(EZB_SERVICE_KEY.equals(serviceKey)){
+			return new Sql(ezbDataSource);
+		}else{
+			return new Sql(bdDataSource);
+		}
+	}
+	
     def dumpDataLibrary(library_id, from, to, outstream, serviceKey) {
 		def reportGenerator = new LibraryDataReportGenerator();
-		runReport(reportGenerator, prepareQuery(config.queries.borrowdirect.dataDumpByLibrary, serviceKey), [from, to, library_id, library_id], outstream)
+		runReport(reportGenerator, prepareQuery(config.queries.borrowdirect.dataDumpByLibrary, serviceKey), [from, to, library_id, library_id], outstream, serviceKey)
     }
 	
 	def dumpDataMultipleItems(from, to, minTimes, outstream, serviceKey) {
 		def reportGenerator = new MultipleItemsDataReportGenerator();
-		runReport(reportGenerator,  prepareQuery(config.queries.borrowdirect.dataDumpMultipleItems, serviceKey), [from, to, minTimes], outstream)
+		runReport(reportGenerator,  prepareQuery(config.queries.borrowdirect.dataDumpMultipleItems, serviceKey), [from, to, minTimes], outstream, serviceKey)
 	}
-	
 	def getSummaryDashboardData(libId, fiscalYear, serviceKey){
-		Sql sql = new Sql(dataSource);
+		getSummaryDashboardData(libId, fiscalYear, serviceKey, null)
+	}
+	def getSummaryDashboardData(libId, fiscalYear, serviceKey, selectedLibIds){
+		Sql sql = getSql(serviceKey);
 		def result = [:]
 		def currentFiscalYear = fiscalYear;
 		Date currentFiscalYearEnd;
@@ -69,8 +81,8 @@ class BorrowDirectService {
 		
 		dates.lastFiscalYear = [DateUtil.getFiscalYearStartDate(currentFiscalYear - 1), lastFiscalYearEnd]
 		
-		loadDataPerLibrary(sql, true, result, dates, libId, serviceKey);
-		loadDataPerLibrary(sql, false, result, dates, libId, serviceKey);
+		loadDataPerLibrary(sql, true, result, dates, libId, serviceKey, selectedLibIds);
+		loadDataPerLibrary(sql, false, result, dates, libId, serviceKey, selectedLibIds);
 		if(libId != null){
 			loadPickupData(sql, result, dates.currentFiscalYear, libId, serviceKey)
 			loadShelvingData(sql, result, dates.currentFiscalYear, libId, serviceKey)
@@ -98,7 +110,7 @@ class BorrowDirectService {
 		Date fiscalYearStart = DateUtil.getFiscalYearStartDate(fiscalYear)
 		Date fiscalYearEnd = DateUtil.getFiscalYearEndDate(fiscalYear)
 		
-		Sql sql = new Sql(dataSource);
+		Sql sql = getSql(serviceKey);
 		CallNoCounts counts;
 		def sqlParams = [fiscalYearStart, fiscalYearEnd]
 		def query = prepareQuery(config.queries.borrowdirect.requestedCallNos, serviceKey)
@@ -115,7 +127,7 @@ class BorrowDirectService {
 				currentFiscalYear: currentFiscalYear]
 	}
 	
-	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId, tablePrefix){
+	def loadDataPerLibrary(sql, isBorrowing, result, dates, libId, tablePrefix, selectedLibIds){
 		def libRoleColumn; 
 		def keyForSection;
 		def additionalCondition = ""
@@ -135,6 +147,9 @@ class BorrowDirectService {
 			libRoleColumn = config.borrowdirect.db.column.lender
 		}
 			keyForSection = 'lending'
+		}
+		if(selectedLibIds != null){
+			additionalCondition += " and " + libRoleColumn + getInClause(selectedLibIds); 
 		}
 		
 		def allQuery = getAdjustedQuery(config.queries.borrowdirect.countsPerLibrary, libRoleColumn, additionalCondition, tablePrefix)
@@ -226,7 +241,7 @@ class BorrowDirectService {
 		return result
 	}
 	def getUnfilledRequests(dateFrom, dateTo, libId, orderBy, serviceKey){
-		Sql sql = new Sql(dataSource);
+		Sql sql = getSql(serviceKey);
 		def query = prepareQuery(config.queries.borrowdirect.libraryUnfilledRequests, serviceKey) + orderBy
 		def sqlParams = [dateFrom, dateTo, libId]
 		log.debug("Runnig query for unfilled requests " + query + "\nparams = " + sqlParams)
@@ -257,7 +272,7 @@ class BorrowDirectService {
 	 * @param tablePrefix
 	 * @return
 	 */
-	def loadHistoricalDataPerLibrary(sql, isBorrowing, result, tablePrefix){
+	def loadHistoricalDataPerLibrary(sql, isBorrowing, result, tablePrefix, selectedLibIds){
 		def libRoleColumn;
 		def keyForSection;
 		def additionalCondition = ""
@@ -268,10 +283,13 @@ class BorrowDirectService {
 			libRoleColumn = config.borrowdirect.db.column.lender
 			keyForSection = 'lending'
 		}
-		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibFilled, libRoleColumn, "", tablePrefix);
+		if(selectedLibIds != null){
+			additionalCondition = " and " + libRoleColumn + " " + getInClause(selectedLibIds);
+		}
+		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibFilled, libRoleColumn, additionalCondition, tablePrefix);
 		query = query.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
 		
-		def allQuery = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibAll, libRoleColumn, "", tablePrefix);
+		def allQuery = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibAll, libRoleColumn, additionalCondition, tablePrefix);
 		allQuery = allQuery.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
 		
 		log.debug("Runnig query for historical data: " + query)
@@ -302,29 +320,39 @@ class BorrowDirectService {
 			})
 		}
 	}
-	
 	def getHistoricalData(serviceKey){
+		return getHistoricalData(serviceKey, null);
+	}
+	def getHistoricalData(serviceKey, selectedLibIds){
 		def result = [:];
 		def currentFiscalYear = DateUtil.getCurrentFiscalYear()
 		//Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
-		Sql sql = new Sql(dataSource);
+		Sql sql = getSql(serviceKey);
 		result.minFiscalYear = minFiscalYear;
 		
-		loadHistoricalDataPerLibrary(sql, true, result, serviceKey);
-		loadHistoricalDataPerLibrary(sql, false, result, serviceKey);
+		loadHistoricalDataPerLibrary(sql, true, result, serviceKey, selectedLibIds);
+		loadHistoricalDataPerLibrary(sql, false, result, serviceKey, selectedLibIds);
 		result.currentFiscalYear = currentFiscalYear
 		log.debug(result)
 		return result;
 	}
 	
 	def getLibraryList(serviceKey){
-		Sql sql = new Sql(dataSource);
+		return getLibraryList(serviceKey, null);
+	}
+	def getInClause(paramList){
+		return " IN (" + paramList.join(',') + ")"	
+	}
+	def getLibraryList(serviceKey, selectedLibIds){
+		Sql sql = getSql(serviceKey);
+		def additionalCondition = selectedLibIds != null?" where library_id " + getInClause(selectedLibIds):""
 		def query = prepareQuery(config.queries.borrowdirect.libraryList, serviceKey)
+		query = query.replaceAll("\\{add_condition\\}", additionalCondition);
 		return sql.rows(query, [])
 	}
 	
 	def getLibraryById(serviceKey, libId){
-		Sql sql = new Sql(dataSource);
+		Sql sql = getSql(serviceKey);
 		def query = prepareQuery(config.queries.borrowdirect.libraryById, serviceKey)
 		return sql.firstRow(query, [libId])
 	}
@@ -338,8 +366,8 @@ class BorrowDirectService {
 		return query.replaceAll("\\{table_prefix\\}", tablePrefix)
 	}
 	
-	private void runReport(reportGenerator, query, inputParams, outstream){
-		Sql sql = new Sql(dataSource);
+	private void runReport(reportGenerator, query, inputParams, outstream, serviceKey){
+		Sql sql =getSql(serviceKey);
 		log.debug("Runnig report query : " + query + "\n params="+inputParams)
 		sql.eachRow(query, inputParams, {
 			reportGenerator.addRowData(it)
