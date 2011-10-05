@@ -2,6 +2,10 @@
 <%@ page contentType="text/html;charset=ISO-8859-1" %>
 
 <g:set var="monthsOrder" value="${summaryData.displayMonthsOrder}" />
+<g:set var="allRowName" value="All Libraries"/>
+<g:if test="${isSelection}">
+    <g:set var="allRowName" value="All Selected Libraries"/>
+</g:if>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
@@ -36,11 +40,12 @@
     </tr>
     </thead>
     <tbody>
+    	
      <g:set var="currentDataMap" value="${summaryData.get(-1l) != null ? summaryData.get(-1l).borrowing: [:]}" />
     <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
-				libName: 'All Libraries',
+				libName: allRowName,
 				lending: false, 
 				monthsOrder:monthsOrder]" />
 <g:set var="rowOffset" value="${0}"/>    
@@ -112,7 +117,7 @@
     <g:render template="/bd_ezb/summary_row"
 		model="[currentDataMap:currentDataMap, 
 				index:0, 
-				libName: 'All Libraries',
+				libName: allRowName,
 				lending: true,
 				monthsOrder:monthsOrder]" />
     

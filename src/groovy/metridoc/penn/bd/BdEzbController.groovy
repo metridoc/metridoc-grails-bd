@@ -63,16 +63,32 @@ class BdEzbController {
 		}
 	}
 	def summary = {
-		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
-		def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear, serviceKey)
-		data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
-		def model = [summaryData: data, 
-					reportName:"Summary for fiscal year " + data.fiscalYear,
-					libraries: borrowDirectService.getLibraryList(serviceKey),
-					serviceKey:serviceKey]
-		render(view:'/bd_ezb/summary', model:model)
+		if(params.submitBtn == 'Historical'){
+			forward(action:'historical_summary', params: params);
+		}else{
+			def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
+			def selectedLibIds = getSelectedLibs(params.list('lIds'));
+			def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear, serviceKey, selectedLibIds)
+			data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
+			def model = [summaryData: data, 
+						reportName:"Summary for fiscal year " + data.fiscalYear,
+						libraries: borrowDirectService.getLibraryList(serviceKey, selectedLibIds),
+						serviceKey:serviceKey,
+						isSelection: selectedLibIds != null && selectedLibIds.size()>0]
+			render(view:'/bd_ezb/summary', model:model)
+		}
 	}
 	
+	def getSelectedLibs(libraryIds){
+		if(libraryIds != null && libraryIds.size() > 0){
+			try{
+				return libraryIds*.toInteger();
+			}catch(Exception ex){
+				log.warn("Invalid library ids: " + ex.getMessage());
+			}
+		}
+		return null;
+	}
 	def lc_report = {
 		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
 		def data =  borrowDirectService.getRequestedCallNoCounts(null, serviceKey, fiscalYear)
@@ -137,9 +153,12 @@ class BdEzbController {
 		}
 	}
 	def historical_summary = {
-		def data = borrowDirectService.getHistoricalData(serviceKey)
+		def selectedLibIds = getSelectedLibs(params.list('lIds'));
+		def data = borrowDirectService.getHistoricalData(serviceKey, selectedLibIds)
 		render(view:'/bd_ezb/historical_summary', model:[reportData: data,
-			libraries: borrowDirectService.getLibraryList(serviceKey), serviceKey:serviceKey])
+			libraries: borrowDirectService.getLibraryList(serviceKey, selectedLibIds), 
+			serviceKey:serviceKey, 
+			selectedLibIds: selectedLibIds])
 	}
 }
 

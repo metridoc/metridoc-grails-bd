@@ -56,12 +56,20 @@ input, select, textarea {
     margin: 2px 0;
     padding: 2px 4px;
 }
-input.radio{
+input.radio, input.checkbox{
 	border-width: 0px
 }
-input.radio:focus{
+input.radio:focus, input.checkbox:focus{
 	border-width: 0px
 }
+/*
+input.checkbox{
+	border-width: 0px
+}
+input.checkbox:focus{
+	border-width: 0px
+}*/
+
 select {
    padding: 2px 2px 2px 0;
 }
@@ -343,4 +351,8 @@ th.desc a {
 	text-align: center;
 	margin-bottom:10px;
 	font-weight: bold;
+}
+.libSelectionItem{
+	padding: 0px 5px;
+	text-align: left;
 }

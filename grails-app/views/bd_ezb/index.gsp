@@ -1,6 +1,7 @@
 <%@page import="metridoc.penn.bd.LibReportCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
+<%@page import="metridoc.penn.bd.BorrowDirectService"%>
 <%@page import="org.codehaus.groovy.grails.commons.ConfigurationHolder"%>
 <g:set var="minCalYear" value="${org.codehaus.groovy.grails.commons.ConfigurationHolder.config.datafarm.minCalYear }"/>
 
@@ -23,6 +24,21 @@
 		document.lib_data_summary_form.to_day.disabled = disabledVal
 		document.lib_data_summary_form.to_year.disabled = disabledVal
 		document.lib_data_summary_form.sortBy.disabled = disabledVal
+	}
+	function showHideLibraryFilter(){
+		var display, imgSrc;
+		if(document.summary_form.style.display == 'none'){
+			display = "";
+			imgSrc = '../images/close.gif';
+		}else{
+			display = "none";
+			imgSrc = '../images/open.gif';
+		}
+		document.summary_form.style.display = display;
+		document.getElementById('filterIcon').src = imgSrc;
+		if(display != 'none'){
+			document.getElementById('allLibArea').scrollIntoView(true)
+		}
 	}
 </script>
 </head>
@@ -102,14 +118,35 @@
 					</g:form>
 				</td>
 			</tr>
-			<tr><td align="center" class="sectionTitle">
+			<tr><td align="center" class="sectionTitle" id="allLibArea">
 				ALL-LIBRARY REPORT OPTIONS
 			</td></tr>
 			<tr>
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
-        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<g:link action="historical_summary">Historical</g:link>           
+        <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<g:link action="historical_summary">Historical</g:link> 
+       
+        	<g:if test="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)}">
+        	<div style="display:inline;float:right; text-align: left"><a href="javascript:showHideLibraryFilter()"><img src="${resource(dir:'images',file:'open.gif')}" id="filterIcon"/>&nbsp;Filter</a></div>
+        	 <g:form name="summary_form" method="post" action="summary" id="summary_form" style="margin:10px; display:none">
+        	 <center>
+        	 <table style="border:none">
+        	<g:each var="library" status="i" in="${libraries}" >
+        		<td class="libSelectionItem"><g:checkBox name="lIds" class="checkbox" value="${library.library_id}" checked="false"/>${library.institution}</td>
+        		<g:if test="${i%2 == 1 }"></tr><tr></g:if>
+        	</g:each>
+        	<tr>
+        	<td colspan="2" align="center">
+        		<input type="submit" name="submitBtn" value="Current"> 
+        		<input type="submit" name="submitBtn" value="Historical">
+				<input type="reset" name="Reset" value="Reset"></td>
+			</tr>
+        	</table>
+        	</center>	
+        	</g:form>  
+         	</g:if> 
+            
         </div>
         <hr/>
         <div  class="formRow">
