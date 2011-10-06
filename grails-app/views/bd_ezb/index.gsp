@@ -63,7 +63,7 @@
 				</g:hasErrors>
 				<g:form name="data_dump_form" method="post" action="data_dump">
 						<div class='formRow'>
-							1.My Library Data Dump:
+							1. My Library Data Dump:
 						</div>
 						<div class='formRow'>
 							Data For:
