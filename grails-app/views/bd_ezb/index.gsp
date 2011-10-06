@@ -125,10 +125,14 @@
     <td>
     <div class="formRow">
        1. Summary Dashboard [filled request, filled rate and turnaround times]:
+        <div style="display:inline;float:right; text-align: left">
         <g:link action="summary">Current Year</g:link>&nbsp;|&nbsp;<g:link action="historical_summary">Historical</g:link> 
-       
+       </div>
+       </div>
         	<g:if test="${BorrowDirectService.EZB_SERVICE_KEY.equals(serviceKey)}">
-        	<div style="display:inline;float:right; text-align: left"><a href="javascript:showHideLibraryFilter()"><img src="${resource(dir:'images',file:'open.gif')}" id="filterIcon"/>&nbsp;Filter</a></div>
+        	 <div class="formRow" style="margin-left:15px; padding-top:0px; font-style: italic;">
+        	 Choose a comparison group:
+        	<div style="display:inline;float:right; padding: 0 15px"><a href="javascript:showHideLibraryFilter()"><img src="${resource(dir:'images',file:'open.gif')}" id="filterIcon"/>&nbsp;Filter</a></div>
         	 <g:form name="summary_form" method="post" action="summary" id="summary_form" style="margin:10px; display:none">
         	 <center>
         	 <table style="border:none">
@@ -144,14 +148,17 @@
 			</tr>
         	</table>
         	</center>	
-        	</g:form>  
+        	</g:form>
+        	</div>  
          	</g:if> 
             
-        </div>
+        
         <hr/>
         <div  class="formRow">
        2. LC Class Dashboard [filled requests grouped by LC Class | first letter]:
-        <g:link action="lc_report">Current Year</g:link>&nbsp;|&nbsp;<g:link action="lc_report" params="[fiscalYear:currentFiscalYear-1]">Historical</g:link> 
+        <div style="display:inline;float:right;">
+        	<g:link action="lc_report">Current Year</g:link>&nbsp;|&nbsp;<g:link action="lc_report" params="[fiscalYear:currentFiscalYear-1]">Historical</g:link> 
+    	</div>
     	</div>
        </td>
   </tr>

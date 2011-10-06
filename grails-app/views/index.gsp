@@ -202,9 +202,9 @@ div .MsoNormalTable tr td .MsoNormal {
   <p><a href="http://datafarm.library.upenn.edu/cgi-bin/ursform/ursform.pl">E-Resource Tracking</a>: Count of  URL handle use for all resources represented in ERED.</p>
   <p style='margin-bottom:12.0pt'>
 
-  <g:link controller="borrowDirect">BorrowDirect Data Repository</g:link>: ILL activity within the BorrowDirect consortium. Password required for individual library data dump.</p>
+  <g:link controller="borrowDirect">BorrowDirect Data Repository</g:link>: ILL activity within the BorrowDirect consortium.</p>
   <p style='margin-bottom:12.0pt'>
-  <g:link controller="EZBorrow">EZBorrow Data Repository</g:link>: ILL activity within the EZBorrow consortium. Password required for individual library data dump.</p>
+  <g:link controller="EZBorrow">EZBorrow Data Repository</g:link>: ILL activity within the EZBorrow consortium.</p>
   <p><a href="http://proxy.library.upenn.edu/loggedin/df-reference.html">Research &amp; Instructional Services</a>: Interface for input and retrieval of logs on RIS consultations and instructional events.
   <p><a href="http://datafarm.library.upenn.edu/annstatsupdater.html">Annual Data Collection</a>: Data compiled for the Library's internal use, in the Penn Library Facts and for external agencies such as ARL and the Department of Education.</p>
   <p><a href="http://datafarm.library.upenn.edu/census/index.html">Library Staff Census</a>: Proposed database for tracking the deployment of library staff, including the tracking of filled and vacant billets and the distribution of positions across library units and divisions.</p>

@@ -23,7 +23,7 @@
      <div style="text-align: right;">
      <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html" target="_historical">Older Data</a>
      </div>
-     <div class="pageTitle">Historical Summary Dashboard</div>
+     <div class="pageTitle">Historical Summary Dashboard <br>[Click the year for details]</div>
      
      <form action="summary" name="summary" method="POST">
      	<input type="hidden" name="fiscalYear" value="" />
