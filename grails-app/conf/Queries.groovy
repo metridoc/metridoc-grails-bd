@@ -28,9 +28,8 @@ queries{
 			left join {table_prefix}_institution lndr on bl.lender = lndr.library_id
 			left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
 			where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
-			and cn.holdings_seq=1
 			group by bl.request_number
-		'''	
+		'''	 /*and cn.holdings_seq=1*/
 		dataDumpMultipleItems = '''
 		select bl.title,
 			bl.publication_year as publicationYear,
@@ -39,15 +38,15 @@ queries{
 			cn.call_number as callNumberUnf,
 			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
 			br.institution as borrower,
-			count(bl.request_number) as itemTimes
+			count(distinct bl.request_number) as itemTimes
 			from {table_prefix}_bibliography bl
 			left join {table_prefix}_institution br on bl.borrower = br.library_id
 			left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
 			where bl.request_date between ? and ? and NOT (bl.borrower <=> bl.lender)
-			and cn.holdings_seq=1
 			group by bl.borrower, bl.call_number, bl.publication_year, bl.isbn, isUnfilled, bl.title 
 			having count(bl.request_number) >= ?
-		'''
+		''' /*and cn.holdings_seq=1*/
+		
 		countsPerLibrary = '''
 			select IFNULL({lib_role},-1) as {lib_role}, count(*) as requestsNum from {table_prefix}_bibliography where request_date between ? and ? and NOT (borrower <=> lender) {add_condition} group by {lib_role} WITH ROLLUP;
 		'''
@@ -103,17 +102,17 @@ queries{
 		left join {table_prefix}_institution lr on pd.library_id = lr.library_id
 		where request_date
 			between ? and ? and bl.supplier_code = 'List Exhausted' and bl.borrower = ? and NOT (bl.borrower <=> bl.lender) 
-			and cn.holdings_seq = 1 group by bl.request_number order by 
-		'''
+			group by bl.request_number order by 
+		''' /*and cn.holdings_seq=1*/
 		
 		historicalCountsPerLibFilled = '''
 		select IFNULL({lib_role},-1) as {lib_role},
 		CASE WHEN MONTH(request_date)>={fy_start_month} THEN YEAR(request_date)+1
 		ELSE YEAR(request_date) END AS fiscal_year,
 		count(*) as requestsNum
-		from {table_prefix}_bibliography where NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) 
+		from {table_prefix}_bibliography b where NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) 
 		{add_condition}
-		group by fiscal_year, {lib_role} WITH ROLLUP
+		group by fiscal_year, b.{lib_role} WITH ROLLUP
 		'''
 		
 		historicalCountsPerLibAll = '''
@@ -125,6 +124,15 @@ queries{
 		{add_condition}
 		group by fiscal_year, {lib_role} WITH ROLLUP
 		'''
+		
+		historicalCountsPerLibraryUnfilled = '''
+		select IFNULL(borrower,-1) as borrower, 
+		CASE WHEN MONTH(request_date)>={fy_start_month} THEN YEAR(request_date)+1
+		ELSE YEAR(request_date) END AS fiscal_year,
+		count(distinct bl.request_number) as requestsNum 
+		from {table_prefix}_bibliography bl inner join {table_prefix}_print_date pd on bl.request_number = pd.request_number
+		where supplier_code = 'List Exhausted' and pd.library_id = ? and borrower != pd.library_id group by fiscal_year, borrower WITH ROLLUP;
+	'''
 		libraryList = '''select * from {table_prefix}_institution {add_condition} order by institution'''
 		libraryById = '''select * from {table_prefix}_institution where library_id=?'''
 	}

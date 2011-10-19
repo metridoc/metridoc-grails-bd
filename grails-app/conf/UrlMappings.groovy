@@ -6,7 +6,7 @@ class UrlMappings {
 				// apply constraints here
 			}
 		}
-		"/"(view:"/index")
+		"/"(controller:"borrowDirect", action:"index")
 		"500"(view:'/error')
 	}
 }

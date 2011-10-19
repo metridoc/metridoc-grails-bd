@@ -23,13 +23,18 @@
      <div style="text-align: right;">
      <a href="http://datafarm.library.upenn.edu/bdez/BDhist.html" target="_historical">Older Data</a>
      </div>
-     <div class="pageTitle">Historical Summary Dashboard <br>[Click the year for details]</div>
+     <div class="pageTitle">
+     <g:if test="${libraryId != null }">${libName} : </g:if>
+     Historical Summary Dashboard <br>[Click the year for details]</div>
      
      <form action="summary" name="summary" method="POST">
      	<input type="hidden" name="fiscalYear" value="" />
      	 <g:each var="id" in="${selectedLibIds}">
      	 	<input type="hidden" name="lIds" value="${id}" />
      	 </g:each>
+     	  <g:if test="${libraryId != null }">
+     	  	<input type="hidden" name="library" value="${libraryId}" />
+     	  </g:if>
      </form>
   <table class="list summary" cellspacing="0">
   <thead>
@@ -64,15 +69,21 @@
 				lending: false, 
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" /> 
+				<g:set var="rowOffset" value="${0}"/> 
 <g:each var="library" status="i" in="${libraries}">
+<g:if test="${libraryId == null || libraryId != library.library_id }">
    <g:set var="currentDataMap" value="${reportData.get(library.library_id.longValue()) != null ? reportData.get(library.library_id.longValue()).borrowing: [:]}" />
      <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
-				index:(i+1), 
+				index:(i+1-rowOffset), 
 				libName: library.institution,
 				lending: false,
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" />
+</g:if>
+<g:else>
+<g:set var="rowOffset" value="${1}"/>
+</g:else>
 </g:each>
     </tbody></table>
     <br>
@@ -107,16 +118,23 @@
 				libName: allRowName,
 				lending: true, 
 				minFiscalYear:reportData.minFiscalYear,
-				currentFiscalYear:reportData.currentFiscalYear]" /> 
+				currentFiscalYear:reportData.currentFiscalYear]" />
+				<g:set var="rowOffset" value="${0}"/>  
 <g:each var="library" status="i" in="${libraries}">
+${libraryId == null || libraryId != library.library_id }
+<g:if test="${libraryId == null || libraryId != library.library_id }">
    <g:set var="currentDataMap" value="${reportData.get(library.library_id.longValue()) != null ? reportData.get(library.library_id.longValue()).lending: [:]}" />
      <g:render template="/bd_ezb/historical_summary_row"
 		model="[currentDataMap:currentDataMap, 
-				index:(i+1), 
+				index:(i+1-rowOffset), 
 				libName: library.institution,
 				lending: true,
 				minFiscalYear:reportData.minFiscalYear,
 				currentFiscalYear:reportData.currentFiscalYear]" />
+			</g:if>
+			<g:else>
+<g:set var="rowOffset" value="${1}"/>
+</g:else>
 </g:each>
     </tbody></table>
   </div>

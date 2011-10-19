@@ -1,3 +1,5 @@
+<%@page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="metridoc.penn.util.DateUtil"%>
 <%@page import="metridoc.penn.bd.LibReportCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpMultCommand"%>
 <%@page import="metridoc.penn.bd.DataDumpCommand"%>
@@ -6,24 +8,35 @@
 <g:set var="minCalYear" value="${org.codehaus.groovy.grails.commons.ConfigurationHolder.config.datafarm.minCalYear }"/>
 
 <%@ page contentType="text/html;charset=ISO-8859-1"%>
+
 <g:set var="currentYear" value="${Calendar.getInstance().get(Calendar.YEAR)}" />
 <g:set var="dataDumpCommand" value="${request.dataDumpCommand != null? request.dataDumpCommand:new DataDumpCommand()}" />
 <g:set var="dataDumpMultCommand" value="${request.dataDumpMultCommand != null? request.dataDumpMultCommand:new DataDumpMultCommand()}" />
 <g:set var="libReportCommand" value="${request.libReportCommand != null ? request.libReportCommand: new LibReportCommand()}" />
+<g:set var="dateFormat" value="MM/dd/yyyy" />
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 <meta name="layout" content="bd_main" />
+<calendar:resources lang="en" theme="tiger" />
 <script>
 	function selectionChanged(val){
-		var disabledVal = (val == ${LibReportCommand.UNFILLED_REQUESTS}) ? '':'disabled';
-		document.lib_data_summary_form.from_month.disabled = disabledVal
-		document.lib_data_summary_form.from_day.disabled = disabledVal
-		document.lib_data_summary_form.from_year.disabled = disabledVal
-		document.lib_data_summary_form.to_month.disabled = disabledVal
-		document.lib_data_summary_form.to_day.disabled = disabledVal
-		document.lib_data_summary_form.to_year.disabled = disabledVal
+		var disabledVal = "";
+		if(val == ${LibReportCommand.UNFILLED_REQUESTS}){
+			document.getElementById("mainSubmitBtn").value="Submit";
+			document.getElementById("histSubmitBtn").style.display = "none";
+		}else{
+			disabledVal = 'disabled';
+			document.getElementById("mainSubmitBtn").value="Current";
+			document.getElementById("histSubmitBtn").style.display = "";
+		}
+	
+		document.lib_data_summary_form.lr_from_value.disabled = disabledVal
+		document.lib_data_summary_form.lr_to_value.disabled = disabledVal
 		document.lib_data_summary_form.sortBy.disabled = disabledVal
+		
+		document.getElementById("lr_from-trigger").disabled = disabledVal
+		document.getElementById("lr_to-trigger").disabled = disabledVal
 	}
 	function showHideLibraryFilter(){
 		var display, imgSrc;
@@ -53,12 +66,7 @@
 				<td valign="top">
 				<g:hasErrors bean="${dataDumpCommand}">
   					<div class="errorMsg">
-  						<g:if test="${hasErrors(bean:dataDumpCommand,field:'password','errors')}">
-    						Invalid Password!
-						</g:if>
-						<g:else>
-						All parameters are required! 
-						</g:else>
+							Invalid input parameters!
   					</div>
 				</g:hasErrors>
 				<g:form name="data_dump_form" method="post" action="data_dump">
@@ -71,12 +79,14 @@
 									optionValue="institution" /> 
 						</div>
 						<div class='formRow'>
-						Specify Dates: From: <g:render
+						Specify Dates: 
+						From: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpCommand, minYear:minCalYear]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'dd_from', commandBean: dataDumpCommand, minYear:minCalYear, dateFormat:dateFormat]" /> 
 								To: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpCommand, minYear:minCalYear]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'dd_to', commandBean: dataDumpCommand, minYear:minCalYear, dateFormat:dateFormat]" /> </div>
+						
 						<div class='formRow'>
 						<center>
 								<input type="submit" name="Submit" value="Submit">
@@ -97,10 +107,10 @@
 						<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: dataDumpMultCommand, minYear:minCalYear]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'ddm_from', commandBean: dataDumpMultCommand, minYear:minCalYear, , dateFormat:dateFormat]" />
 								To: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: dataDumpMultCommand, minYear:minCalYear]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'ddm_to', commandBean: dataDumpMultCommand, minYear:minCalYear, dateFormat:dateFormat]" /> </div>
 								
 						<div class='formRow'>
 						<% errorClass = dataDumpMultCommand.errors.hasFieldErrors("itemTimes") ? 'errorField' : ""; %>
@@ -186,6 +196,11 @@ Summary Dashboard [filled request, filled rate and turnaround times]
         </div>
         <hr/>
         <div class='formRow'>
+        <g:hasErrors bean="${libReportCommand}">
+  					<div class="errorMsg">
+						Invalid input parameters!
+  					</div>
+					</g:hasErrors>
         <input name="reportType" type="radio" class="radio" value="${LibReportCommand.UNFILLED_REQUESTS}" 
               <%= libReportCommand.getReportType() == LibReportCommand.UNFILLED_REQUESTS ? "checked=\"checked\"":"" %> onclick="selectionChanged(this.value)"/>
               List My Unfilled Requests &nbsp; [Please select date range for unfilled requests.]&nbsp; Sort By:
@@ -196,12 +211,13 @@ Summary Dashboard [filled request, filled rate and turnaround times]
  	<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'from', commandBean: libReportCommand, minYear:minCalYear]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'lr_from', commandBean: libReportCommand, minYear:minCalYear, dateFormat:dateFormat]" />
 								To: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'to', commandBean: libReportCommand, minYear:minCalYear]" /> </div>
+									model="[currentYear:currentYear, fieldNamePrefix:'lr_to', commandBean: libReportCommand, minYear:minCalYear, dateFormat:dateFormat]" /> </div>
 	 <div class='formRow'>
-         <center> <input type="submit" name="Submit" value="Submit">
+         <center> <input type="submit" name="submitBtn" value="Current" id="mainSubmitBtn">
+         <input type="submit" name="submitBtn" value="Historical"id="histSubmitBtn">
       <input type="reset" name="Reset" value="Reset"> </center>
   </div>
   </g:form>

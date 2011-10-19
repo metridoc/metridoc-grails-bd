@@ -1,17 +1,5 @@
-<% def  val = commandBean.(fieldNamePrefix +"_month")
-   def 	errorClass = commandBean.errors.hasFieldErrors(fieldNamePrefix +"_month") ? 'errorField' : "";
-%>
-<g:select name="${fieldNamePrefix}_month" from="${0..11}" value="${val}"
-          noSelection="['-1':'Month']"  valueMessagePrefix="datafarm.month" class="${errorClass}"/>
-<% 
-    errorClass = commandBean.errors.hasFieldErrors(fieldNamePrefix +"_day") ? 'errorField' : "";
-    val = commandBean.(fieldNamePrefix +"_day")
-%>
-<g:select name="${fieldNamePrefix}_day" from="${1..31}" value="${val}"
-          noSelection="['-1':'Day']" class="${errorClass}"/>
-<% 
-   	errorClass = commandBean.errors.hasFieldErrors(fieldNamePrefix +"_year") ? 'errorField' : ""; 
-   	val = commandBean.(fieldNamePrefix +"_year");
-%>
-<g:select name="${fieldNamePrefix}_year" from="${minYear..currentYear}" value="${val}"
-          noSelection="['-1':'Year']" class="${errorClass}"/>
+<%@page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="java.util.Date"%>
+<% Date prevDate = !StringUtils.isEmpty(commandBean.(fieldNamePrefix+"_value")) ? new Date().parse(dateFormat, commandBean.(fieldNamePrefix+"_value")):null; %>
+<calendar:datePicker name="${fieldNamePrefix}" years="${minYear}, ${currentYear }"
+value="${prevDate}" />

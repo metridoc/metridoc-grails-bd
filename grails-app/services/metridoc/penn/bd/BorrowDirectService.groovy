@@ -272,19 +272,29 @@ class BorrowDirectService {
 	 * @param tablePrefix
 	 * @return
 	 */
-	def loadHistoricalDataPerLibrary(sql, isBorrowing, result, tablePrefix, selectedLibIds){
+	def loadHistoricalDataPerLibrary(sql, isBorrowing, result, tablePrefix, selectedLibIds, libId){
 		def libRoleColumn;
 		def keyForSection;
 		def additionalCondition = ""
 		if(isBorrowing){
-			libRoleColumn = config.borrowdirect.db.column.borrower
+			if(libId != null){
+				additionalCondition = "and " + config.borrowdirect.db.column.borrower+"="+libId
+				libRoleColumn = config.borrowdirect.db.column.lender
+			}else{
+				libRoleColumn = config.borrowdirect.db.column.borrower
+			}
 			keyForSection = 'borrowing'
 		}else{
+		if(libId != null){
+			additionalCondition = "and " + config.borrowdirect.db.column.lender+"="+libId
+			libRoleColumn = config.borrowdirect.db.column.borrower
+		}else{
 			libRoleColumn = config.borrowdirect.db.column.lender
+		}
 			keyForSection = 'lending'
 		}
 		if(selectedLibIds != null){
-			additionalCondition = " and " + libRoleColumn + " " + getInClause(selectedLibIds);
+			additionalCondition += " and " + libRoleColumn + getInClause(selectedLibIds);
 		}
 		def query = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibFilled, libRoleColumn, additionalCondition, tablePrefix);
 		query = query.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
@@ -303,6 +313,7 @@ class BorrowDirectService {
 		})
 		
 		if(isBorrowing){
+			if(libId == null){
 			//borrowing:yearFillRate
 			log.debug("Runnig query for historical fillRates: " + allQuery )
 			sql.eachRow(allQuery,
@@ -318,20 +329,42 @@ class BorrowDirectService {
 				currentMap.fillRates.put(currentKey, (it.requestsNum != 0?
 				filledReqs/(float)it.requestsNum :-1))
 			})
+			}
+		}else if(libId != null){
+			//lending: fillRates for lib
+			def unfilledReqsQuery = getAdjustedQuery(config.queries.borrowdirect.historicalCountsPerLibraryUnfilled, libRoleColumn, additionalCondition, tablePrefix)
+			unfilledReqsQuery = unfilledReqsQuery.replaceAll("\\{fy_start_month\\}", (DateUtil.FY_START_MONTH + 1)+"") //change from base 0 to base 1
+			def unfilledReqsParams = [libId]
+			log.debug("Runnig query for historical fillRate: lending: " + unfilledReqsQuery + " params="+unfilledReqsParams)
+			sql.eachRow(unfilledReqsQuery,
+				unfilledReqsParams, {
+				def libData = getLibDataMapHistorical(it.getAt(0), result)
+				def currentMap = libData.get(keyForSection)
+				int currentKey = it.getAt(1) != null ? it.getAt(1) : -1
+				
+				int filledReqs = currentMap.items.get(currentKey);
+				if( filledReqs == null){
+					filledReqs = 0;
+				}
+				
+				def allRequests = filledReqs + it.requestsNum
+				currentMap.fillRates.put(currentKey, (allRequests != 0?
+				filledReqs/(float)allRequests :-1))
+			})
 		}
 	}
-	def getHistoricalData(serviceKey){
-		return getHistoricalData(serviceKey, null);
+	def getHistoricalData(serviceKey, libId){
+		return getHistoricalData(serviceKey, null, libId);
 	}
-	def getHistoricalData(serviceKey, selectedLibIds){
+	def getHistoricalData(serviceKey, selectedLibIds, libId){
 		def result = [:];
 		def currentFiscalYear = DateUtil.getCurrentFiscalYear()
 		//Date currentFiscalYearStart = DateUtil.getFiscalYearStartDate(currentFiscalYear)
 		Sql sql = getSql(serviceKey);
 		result.minFiscalYear = minFiscalYear;
 		
-		loadHistoricalDataPerLibrary(sql, true, result, serviceKey, selectedLibIds);
-		loadHistoricalDataPerLibrary(sql, false, result, serviceKey, selectedLibIds);
+		loadHistoricalDataPerLibrary(sql, true, result, serviceKey, selectedLibIds, libId);
+		loadHistoricalDataPerLibrary(sql, false, result, serviceKey, selectedLibIds, libId);
 		result.currentFiscalYear = currentFiscalYear
 		log.debug(result)
 		return result;

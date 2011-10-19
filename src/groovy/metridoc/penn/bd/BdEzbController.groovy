@@ -36,8 +36,8 @@ class BdEzbController {
 	def data_dump = { DataDumpCommand cmd ->
 		if(!cmd.hasErrors()){
 			def library_id = cmd.library				
-			def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
-			def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
+			def dateFrom = DateUtil.getDateStartOfDay(cmd.dd_from_year, cmd.dd_from_month-1, cmd.dd_from_day)
+			def dateTo = DateUtil.getDateEndOfDay(cmd.dd_to_year, cmd.dd_to_month-1, cmd.dd_to_day)
 			response.setHeader("Content-Disposition", "attachment;filename=\"my_library_dump.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
 			borrowDirectService.dumpDataLibrary(library_id, dateFrom, dateTo, response.outputStream, serviceKey)	
@@ -50,8 +50,8 @@ class BdEzbController {
 	
 	def data_dump_mult = { DataDumpMultCommand cmd ->
 		if(!cmd.hasErrors()){
-			def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
-			def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
+			def dateFrom = DateUtil.getDateStartOfDay(cmd.ddm_from_year, cmd.ddm_from_month-1, cmd.ddm_from_day)
+			def dateTo = DateUtil.getDateEndOfDay(cmd.ddm_to_year, cmd.ddm_to_month-1, cmd.ddm_to_day)
 						
 			response.setHeader("Content-Disposition", "attachment;filename=\"multiple_items.xlsx\"");
 			response.setContentType("application/vnd.ms-excel")
@@ -66,14 +66,19 @@ class BdEzbController {
 		if(params.submitBtn == 'Historical'){
 			forward(action:'historical_summary', params: params);
 		}else{
+		def libId = params.library != null? params.long("library"):null;
+		def reportNamePrefix = libId != null?borrowDirectService.getLibraryById(serviceKey, libId).institution + " : ":"";
+		
+		
 			def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
 			def selectedLibIds = getSelectedLibs(params.list('lIds'));
-			def data = borrowDirectService.getSummaryDashboardData(null, fiscalYear, serviceKey, selectedLibIds)
+			def data = borrowDirectService.getSummaryDashboardData(libId, fiscalYear, serviceKey, selectedLibIds)
 			data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
 			def model = [summaryData: data, 
-						reportName:"Summary for fiscal year " + data.fiscalYear,
+						reportName:reportNamePrefix + "Summary for fiscal year " + data.fiscalYear,
 						libraries: borrowDirectService.getLibraryList(serviceKey, selectedLibIds),
 						serviceKey:serviceKey,
+						libraryId: libId,
 						isSelection: selectedLibIds != null && selectedLibIds.size()>0]
 			render(view:'/bd_ezb/summary', model:model)
 		}
@@ -91,7 +96,9 @@ class BdEzbController {
 	}
 	def lc_report = {
 		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
-		def data =  borrowDirectService.getRequestedCallNoCounts(null, serviceKey, fiscalYear)
+		def libId = params.library != null ? params.int('library'):null;
+		
+		def data =  borrowDirectService.getRequestedCallNoCounts(libId, serviceKey, fiscalYear)
 		CallNoCounts counts = data.counts
 		boolean isHistorical = (data.reportFiscalYear != data.currentFiscalYear)
 		def model = [callNoCounts:counts!=null?counts.getCountPerBucket():[:], 
@@ -103,43 +110,37 @@ class BdEzbController {
 				reportFiscalYear: data.reportFiscalYear,
 				isHistorical:isHistorical,
 				serviceKey:serviceKey]
+		
+		if(libId != null){
+			def libName = borrowDirectService.getLibraryById(serviceKey, libId).institution
+			model.libName = libName;
+			model.libId = libId;
+		}
+		
 		render(view:'/bd_ezb/lc_report', model:model)
 	}
 	
-	def lib_data_summary = { LibReportCommand cmd ->	
-		if(!cmd.hasErrors()){
+	def lib_data_summary = { LibReportCommand cmd ->			
 			if(cmd.reportType == LibReportCommand.SUMMARY){
-				def libId = cmd.library
-				String libName = borrowDirectService.getLibraryById(serviceKey, libId).institution
-				def fiscalYear = null;
-//				if(params.Submit2 != null){
-//					fiscalYear = 2011
-//				}
-				def data = borrowDirectService.getSummaryDashboardData(libId, fiscalYear, serviceKey)
-				data.displayMonthsOrder = borrowDirectService.getMonthsInDisplayOrder(data.currentMonth)
-				def model = [summaryData: data,
-							reportName:libName + ": Summary for fiscal year " + data.fiscalYear,
-							libraryId: libId,
-							libraries: borrowDirectService.getLibraryList(serviceKey),
-							serviceKey:serviceKey]
-				render(view:'/bd_ezb/summary', model:model)
-				
+				if(params.submitBtn == 'Historical'){
+					forward(action:'historical_summary', params: params);
+				}else{
+					forward(action:'summary', params: params);
+				}
 			}else if(cmd.reportType == LibReportCommand.LC_CLASS){
 				def libId = cmd.library
-				def data = borrowDirectService.getRequestedCallNoCounts(libId, serviceKey, null)
-				CallNoCounts counts = data.counts;
-				def libName = borrowDirectService.getLibraryById(serviceKey, libId).institution//Library.read(libId).getCatalogCodeDesc()
-				def model = [callNoCounts:counts!=null?counts.getCountPerBucket():[:],
-						callNoCountPerType:counts!=null?counts.getCountPerType():[:],
-						bucketItems: BucketService.getInstance().getBucketItems(),
-						libName: libName,
-						reportFiscalYear: data.reportFiscalYear,
-						serviceKey:serviceKey]
-				render(view:'/bd_ezb/lc_report', model:model)
-				
+				def fiscalYear = null;
+				if(params.submitBtn == 'Historical'){
+					fiscalYear = DateUtil.getCurrentFiscalYear() - 1;
+					params.fiscalYear = fiscalYear;
+				}				
+				forward(action:'lc_report', params: params);
+			}else if(cmd.hasErrors()){
+				request.libReportCommand = cmd
+				render(view:'/bd_ezb/index', model:getIndexPageModel())
 			}else{
-				def dateFrom = DateUtil.getDateStartOfDay(cmd.from_year, cmd.from_month, cmd.from_day)
-				def dateTo = DateUtil.getDateEndOfDay(cmd.to_year, cmd.to_month, cmd.to_day)
+				def dateFrom = DateUtil.getDateStartOfDay(cmd.lr_from_year, cmd.lr_from_month-1, cmd.lr_from_day)
+				def dateTo = DateUtil.getDateEndOfDay(cmd.lr_to_year, cmd.lr_to_month-1, cmd.lr_to_day)
 
 				def data = borrowDirectService.getUnfilledRequests(dateFrom, dateTo, cmd.library, cmd.sortBy, serviceKey)
 				def libName = borrowDirectService.getLibraryById(serviceKey, cmd.library).institution//Library.read(cmd.library).getCatalogCodeDesc()
@@ -147,16 +148,16 @@ class BdEzbController {
 				render(view:'/bd_ezb/unfilled_requests', model:[reportData: data, reportName:reportHeader, serviceKey:serviceKey])
 			}
 			return null
-		}else{
-			request.libReportCommand = cmd
-			render(view:'/bd_ezb/index', model:getIndexPageModel())
-		}
 	}
 	def historical_summary = {
+		def libId = params.library != null? params.long("library"):null;
+		def libName = libId != null?borrowDirectService.getLibraryById(serviceKey, libId).institution:"";
 		def selectedLibIds = getSelectedLibs(params.list('lIds'));
-		def data = borrowDirectService.getHistoricalData(serviceKey, selectedLibIds)
+		def data = borrowDirectService.getHistoricalData(serviceKey, selectedLibIds, libId)
 		render(view:'/bd_ezb/historical_summary', model:[reportData: data,
 			libraries: borrowDirectService.getLibraryList(serviceKey, selectedLibIds), 
+			libraryId: libId,
+			libName: libName,
 			serviceKey:serviceKey, 
 			selectedLibIds: selectedLibIds])
 	}
@@ -164,26 +165,29 @@ class BdEzbController {
 
 class DataDumpCommand {
 	int library = -1
-	int from_year = -1
-	int from_month = -1
-	int from_day = -1
+	int dd_from_year = -1
+	int dd_from_month = -1
+	int dd_from_day = -1
 	
-	int to_year = -1
-	int to_month = -1
-	int to_day = -1
+	int dd_to_year = -1
+	int dd_to_month = -1
+	int dd_to_day = -1
+	
+	def dd_from_value;
+	def dd_to_value;
 	
 	//String password
 	
 	static constraints = {
 		library(min:0)
-		from_year(min:0)
-		from_month(min:0, max:11)
-		from_day(min:1, max:31)
+		dd_from_year(min:0)
+		dd_from_month(min:1, max:12)
+		dd_from_day(min:1, max:31)
 		
-		to_year(min:0)
-		to_month(min:0, max:11)
-		to_day(min:01, max:31)
-		
+		dd_to_year(min:0)
+		dd_to_month(min:1, max:12)
+		dd_to_day(min:1, max:31)
+
 //		password(validator: { val, obj ->
 //			def realPassword = ConfigurationHolder.config.passwords[obj.library]
 //			!StringUtils.isEmpty(val) && !StringUtils.isEmpty(realPassword) && DigestUtils.md5Hex(val) == realPassword
@@ -192,24 +196,27 @@ class DataDumpCommand {
 }
 
 class DataDumpMultCommand {
-	int from_year = -1
-	int from_month = -1
-	int from_day = -1
+	int ddm_from_year = -1
+	int ddm_from_month = -1
+	int ddm_from_day = -1
 	
-	int to_year = -1
-	int to_month = -1
-	int to_day = -1
+	int ddm_to_year = -1
+	int ddm_to_month = -1
+	int ddm_to_day = -1
 	
 	int itemTimes = 1
 	
+	def ddm_from_value;
+	def ddm_to_value;
+	
 	static constraints = {
-		from_year(min:0)
-		from_month(min:0, max:11)
-		from_day(min:1, max:31)
+		ddm_from_year(min:0)
+		ddm_from_month(min:1, max:12)
+		ddm_from_day(min:1, max:31)
 		
-		to_year(min:0)
-		to_month(min:0, max:11)
-		to_day(min:1, max:31)
+		ddm_to_year(min:0)
+		ddm_to_month(min:1, max:12)
+		ddm_to_day(min:1, max:31)
 		itemTimes(min:0)
 	}
 }
@@ -226,38 +233,41 @@ class LibReportCommand {
 		config.borrowdirect.db.column.isbn]
 	
 	int library = -1
-	int from_year = -1
-	int from_month = -1
-	int from_day = -1
+	int lr_from_year = -1
+	int lr_from_month = -1
+	int lr_from_day = -1
 	
-	int to_year = -1
-	int to_month = -1
-	int to_day = -1
+	int lr_to_year = -1
+	int lr_to_month = -1
+	int lr_to_day = -1
 	
 	int reportType = 0
 	def sortBy
+	
+	def lr_from_value;
+	def lr_to_value;
 	
 	static constraints = {
 		library(min:0)
 		reportType(min:0, max:2)
 		
-		from_year(validator: { val, obj -> 
+		lr_from_year(validator: { val, obj -> 
 			return validateDateFields(val ,obj, 0, Integer.MAX_VALUE)
 		})
-		from_month(validator: { val, obj -> 
-			return validateDateFields(val ,obj, 0, 11)
+		lr_from_month(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 1, 12)
 		})
-		from_day(validator: { val, obj -> 
+		lr_from_day(validator: { val, obj -> 
 			return validateDateFields(val ,obj, 1, 31)
 		})
 		
-		to_year(validator: { val, obj -> 
+		lr_to_year(validator: { val, obj -> 
 			return validateDateFields(val ,obj, 0, Integer.MAX_VALUE)
 		})
-		to_month(validator: { val, obj -> 
-			return validateDateFields(val ,obj, 0, 11)
+		lr_to_month(validator: { val, obj -> 
+			return validateDateFields(val ,obj, 1, 12)
 		})
-		to_day(validator: { val, obj -> 
+		lr_to_day(validator: { val, obj -> 
 			return validateDateFields(val ,obj, 1, 31)
 		})
 		sortBy(validator: { val, obj -> 
