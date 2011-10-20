@@ -310,6 +310,13 @@ class BorrowDirectService {
 //			if(currentKey != -1 && currentKey < result.minFiscalYear){
 //				result.minFiscalYear = currentKey
 //			}
+			
+			if(!isBorrowing && libId != null){
+				//if there is lending fillRate and for current library it.getAt(0) year number is > 0
+				//set default fillRate=1, if there were any unfilled requests
+				//this number will be updated later (section '//lending: fillRate for lib')
+				libData.get(keyForSection).fillRates.put(currentKey, 1);
+			}
 		})
 		
 		if(isBorrowing){
