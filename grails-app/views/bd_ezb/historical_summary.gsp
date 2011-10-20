@@ -121,7 +121,6 @@
 				currentFiscalYear:reportData.currentFiscalYear]" />
 				<g:set var="rowOffset" value="${0}"/>  
 <g:each var="library" status="i" in="${libraries}">
-${libraryId == null || libraryId != library.library_id }
 <g:if test="${libraryId == null || libraryId != library.library_id }">
    <g:set var="currentDataMap" value="${reportData.get(library.library_id.longValue()) != null ? reportData.get(library.library_id.longValue()).lending: [:]}" />
      <g:render template="/bd_ezb/historical_summary_row"
