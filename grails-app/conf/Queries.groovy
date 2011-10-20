@@ -44,7 +44,7 @@ queries{
 			left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
 			where bl.request_date between ? and ? and NOT (bl.borrower <=> bl.lender)
 			group by bl.borrower, bl.call_number, bl.publication_year, bl.isbn, isUnfilled, bl.title 
-			having count(bl.request_number) >= ?
+			having count(distinct bl.request_number) >= ?
 		''' /*and cn.holdings_seq=1*/
 		
 		countsPerLibrary = '''
