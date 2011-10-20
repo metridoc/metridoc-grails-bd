@@ -18,7 +18,7 @@ class ReportGeneratorHelper {
 	private static String STATUS_UNFILLED = "UNF";
 	private static String STATUS_FILLED = "REC";
 	
-	static String getStatus(int isUnfilled){
+	static String getStatus(isUnfilled){
 		return isUnfilled>0?STATUS_UNFILLED:STATUS_FILLED
 	}
 	
