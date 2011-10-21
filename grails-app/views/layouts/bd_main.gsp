@@ -28,7 +28,7 @@
 			 Data Repository${ConfigurationHolder.config.datafarm.title.ext}</span></g:link>
 			</td><!-- 250 -->
 			<td width="30%" bgcolor="#333366" align="center">
-				<g:link url="${request.getContextPath() }"><span>Penn Library DATA FARM</span></g:link>
+				<g:link url="/"><span>Penn Library DATA FARM</span></g:link>
 			</td>
 
 		</tr>

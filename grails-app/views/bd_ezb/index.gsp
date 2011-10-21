@@ -42,10 +42,10 @@
 		var display, imgSrc;
 		if(document.summary_form.style.display == 'none'){
 			display = "";
-			imgSrc = '../images/close.gif';
+			imgSrc = '${request.getContextPath()}/images/close.gif';
 		}else{
 			display = "none";
-			imgSrc = '../images/open.gif';
+			imgSrc = '${request.getContextPath()}/images/open.gif';
 		}
 		document.summary_form.style.display = display;
 		document.getElementById('filterIcon').src = imgSrc;
