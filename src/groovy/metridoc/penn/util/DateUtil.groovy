@@ -1,5 +1,7 @@
 package metridoc.penn.util
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 class DateUtil {
@@ -46,5 +48,21 @@ class DateUtil {
 	private static Date getFiscalYearEndDate(int fiscalYear){
 		def endMonth = getFiscalYearEndMonth();
 		return getDateEndOfDay(fiscalYear, endMonth, getLastDayOfMonth(fiscalYear, endMonth))
+	}
+	
+	public static Date getDate(String dateStr, String pattern){
+		Date date = null;
+		try{
+			SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+			date = sdf.parse(dateStr);
+		}catch(ParseException ex){
+		}
+		return date;
+	}
+	
+	public static Date getDateEndOfDay(Date date){
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		return getDateEndOfDay(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH));
 	}
 }
