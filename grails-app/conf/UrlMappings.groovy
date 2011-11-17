@@ -3,10 +3,15 @@ import metridoc.penn.bd.BorrowDirectService;
 class UrlMappings {
 
 	static mappings = {
-		"/borrowDirect/reports/$action?/$dateFrom/$dateTo/$itemTimes?"{
+		"/borrowDirect/reports/dataDump/$dateFrom/$dateTo/$libraryId"{
 			controller = "service"
+			action="dataDump"
 			serviceKey = BorrowDirectService.BD_SERVICE_KEY
-		}
+		}		
+//		"/borrowDirect/reports/$action?/$dateFrom/$dateTo/$itemTimes?"{
+//			controller = "service"
+//			serviceKey = BorrowDirectService.BD_SERVICE_KEY
+//		}
 		"/$controller/$action?/$id?"{
 			constraints {
 				// apply constraints here
