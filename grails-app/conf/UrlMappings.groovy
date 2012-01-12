@@ -7,11 +7,13 @@ class UrlMappings {
 			controller = "service"
 			action="dataDump"
 			serviceKey = BorrowDirectService.BD_SERVICE_KEY
-		}		
-//		"/borrowDirect/reports/$action?/$dateFrom/$dateTo/$itemTimes?"{
-//			controller = "service"
-//			serviceKey = BorrowDirectService.BD_SERVICE_KEY
-//		}
+		}
+		"/EZBorrow/reports/dataDump/$dateFrom/$dateTo/$libraryId"{
+			controller = "service"
+			action="dataDump"
+			serviceKey = BorrowDirectService.EZB_SERVICE_KEY
+		}
+
 		"/$controller/$action?/$id?"{
 			constraints {
 				// apply constraints here
