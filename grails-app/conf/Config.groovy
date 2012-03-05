@@ -97,5 +97,6 @@ log4j = {
 
     warn   'org.mortbay.log', 'grails.app'
 	
-	debug  'org.hibernate.SQL', 'grails.app.service'
+	debug  'org.hibernate.SQL', 'grails.app', 'grails.app.services'
 }
+grails.validateable.packages=['metridoc.penn.bd']

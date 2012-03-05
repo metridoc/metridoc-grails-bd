@@ -8,12 +8,13 @@ import metridoc.penn.util.DateUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.codehaus.groovy.grails.validation.Validateable;
 
 class BdEzbController {
 	def borrowDirectService
 	def serviceKey = BorrowDirectService.BD_SERVICE_KEY;
 	
-	def getIndexPageModel(){
+	private getIndexPageModel(){
 		return [sortByOptions:LibReportCommand.sortByOptions, 
 				showTopLinks:true, 
 				currentFiscalYear: DateUtil.getCurrentFiscalYear(), 
@@ -21,19 +22,12 @@ class BdEzbController {
 				serviceKey:serviceKey]
 	}
 	
-    def index = { 
+    def index(){ 
 		def model = getIndexPageModel() 
 		render(view:'/bd_ezb/index', model:model)
 	}
 	
-	def lost_password = {
-		render(view:'/bd_ezb/lost_password', model:[serviceKey:serviceKey])
-	}
-	def notes = {
-		render(view:'/bd_ezb/notes', model:[serviceKey:serviceKey])
-	}
-	
-	def data_dump = { DataDumpCommand cmd ->
+	def data_dump( DataDumpCommand cmd ){
 		if(!cmd.hasErrors()){
 			def library_id = cmd.library				
 			def dateFrom = DateUtil.getDateStartOfDay(cmd.dd_from_year, cmd.dd_from_month-1, cmd.dd_from_day)
@@ -48,7 +42,7 @@ class BdEzbController {
 		}
 	}
 	
-	def data_dump_mult = { DataDumpMultCommand cmd ->
+	def data_dump_mult( DataDumpMultCommand cmd ){
 		if(!cmd.hasErrors()){
 			def dateFrom = DateUtil.getDateStartOfDay(cmd.ddm_from_year, cmd.ddm_from_month-1, cmd.ddm_from_day)
 			def dateTo = DateUtil.getDateEndOfDay(cmd.ddm_to_year, cmd.ddm_to_month-1, cmd.ddm_to_day)
@@ -62,7 +56,7 @@ class BdEzbController {
 			render(view:'/bd_ezb/index', model:getIndexPageModel())
 		}
 	}
-	def summary = {
+	def summary() {
 		if(params.submitBtn == 'Historical'){
 			forward(action:'historical_summary', params: params);
 		}else{
@@ -84,7 +78,7 @@ class BdEzbController {
 		}
 	}
 	
-	def getSelectedLibs(libraryIds){
+	private getSelectedLibs(libraryIds){
 		if(libraryIds != null && libraryIds.size() > 0){
 			try{
 				return libraryIds*.toInteger();
@@ -94,7 +88,7 @@ class BdEzbController {
 		}
 		return null;
 	}
-	def lc_report = {
+	def lc_report(){
 		def fiscalYear = params.fiscalYear != null ? params.int('fiscalYear'):null;
 		def libId = params.library != null ? params.int('library'):null;
 		
@@ -120,7 +114,7 @@ class BdEzbController {
 		render(view:'/bd_ezb/lc_report', model:model)
 	}
 	
-	def lib_data_summary = { LibReportCommand cmd ->			
+	def lib_data_summary(LibReportCommand cmd){			
 			if(cmd.reportType == LibReportCommand.SUMMARY){
 				if(params.submitBtn == 'Historical'){
 					forward(action:'historical_summary', params: params);
@@ -149,7 +143,7 @@ class BdEzbController {
 			}
 			return null
 	}
-	def historical_summary = {
+	def historical_summary(){
 		def libId = params.library != null? params.long("library"):null;
 		def libName = libId != null?borrowDirectService.getLibraryById(serviceKey, libId).institution:"";
 		def selectedLibIds = getSelectedLibs(params.list('lIds'));
@@ -163,6 +157,7 @@ class BdEzbController {
 	}
 }
 
+@Validateable
 class DataDumpCommand {
 	int library = -1
 	int dd_from_year = -1
@@ -195,6 +190,7 @@ class DataDumpCommand {
 	}
 }
 
+@Validateable
 class DataDumpMultCommand {
 	int ddm_from_year = -1
 	int ddm_from_month = -1
@@ -221,6 +217,7 @@ class DataDumpMultCommand {
 	}
 }
 
+@Validateable
 class LibReportCommand {
 	public static final int SUMMARY = 0;
 	public static final int LC_CLASS = 1;
