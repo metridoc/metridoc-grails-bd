@@ -59,7 +59,18 @@ queries{
 		countsPerLibraryMonthlyFilled = '''
 			select IFNULL({lib_role},-1) as {lib_role}, month(request_date), count(*) as requestsNum from {table_prefix}_bibliography where request_date between ? and ? and NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) {add_condition} group by {lib_role}, month(request_date) WITH ROLLUP
 		'''
+		
 		turnaroundPerLibrary = '''
+			select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, min_ship_date)) as turnaroundShpRec,
+			AVG(DATEDIFF(min_ship_date, request_date))as turnaroundReqShp,
+			AVG(DATEDIFF(process_date, request_date)) as turnaroundReqRec
+			from {table_prefix}_bibliography bl
+			inner join {table_prefix}_min_ship_date bshl on bl.request_number = bshl.request_number
+			where request_date between ? and ? and NOT (supplier_code <=> 'List Exhausted') and NOT (bl.borrower <=> bl.lender) {add_condition}
+			group by {lib_role} WITH ROLLUP
+		'''
+		
+		/*turnaroundPerLibrary = '''
 			select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, ship_date)) as turnaroundShpRec, 
 			AVG(DATEDIFF(ship_date, request_date))as turnaroundReqShp, 
 			AVG(DATEDIFF(process_date, request_date)) as turnaroundReqRec
@@ -74,7 +85,7 @@ queries{
 			where request_date between ? and ? and NOT (supplier_code <=> 'List Exhausted') and NOT (bl.borrower <=> bl.lender) {add_condition}
 			group by bl.request_number ) sub_data
 			group by {lib_role} WITH ROLLUP
-		'''
+		'''*/
 
 		/**
 		* for fillRate in Borrowing
