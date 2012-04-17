@@ -2,6 +2,36 @@ queries{
 	borrowdirect{
 		//--------------1. My Library Data Dump report query--------------
 		dataDumpByLibrary = '''
+		select bl.request_number as requestNumber,
+		bl.pickup_location as pickupLocation,
+		bl.request_date as requestDate,
+		bl.process_date as processDate,
+		pt.patron_type_desc as patronType,
+		bl.author,
+		bl.title,
+		bl.publisher,
+		bl.publication_place as publicationPlace,
+		bl.publication_year as publicationYear,
+		bl.isbn,
+		bl.lccn,
+		bl.oclc,
+		bl.call_number as callNumber,
+		cn.call_number as callNumberUnf,
+		bl.supplier_code as supplierCode,
+		IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
+		br.institution as borrower,
+		lndr.institution as lender,
+		shdl.min_ship_date as shipDate
+		from {table_prefix}_bibliography bl
+		left join {table_prefix}_min_ship_date shdl on bl.request_number = shdl.request_number
+		left join {table_prefix}_patron_type pt on bl.patron_type = pt.patron_type
+		left join {table_prefix}_institution br on bl.borrower = br.library_id
+		left join {table_prefix}_institution lndr on bl.lender = lndr.library_id
+		left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
+		where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
+		group by bl.request_number
+		''' //group by because of non unique {table_prefix}_call_number per request_number 
+		/*dataDumpByLibrary = '''
 			select bl.request_number as requestNumber,
 			bl.pickup_location as pickupLocation,
 			bl.request_date as requestDate,
