@@ -31,37 +31,7 @@ queries{
 		where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
 		group by bl.request_number
 		''' //group by because of non unique {table_prefix}_call_number per request_number 
-		/*dataDumpByLibrary = '''
-			select bl.request_number as requestNumber,
-			bl.pickup_location as pickupLocation,
-			bl.request_date as requestDate,
-			bl.process_date as processDate,
-			pt.patron_type_desc as patronType,
-			bl.author,
-			bl.title,
-			bl.publisher,
-			bl.publication_place as publicationPlace,
-			bl.publication_year as publicationYear,
-			bl.isbn,
-			bl.lccn,
-			bl.oclc,
-			bl.call_number as callNumber,
-			cn.call_number as callNumberUnf,
-			bl.supplier_code as supplierCode,
-			IF(bl.supplier_code = 'List Exhausted', 1, 0) as isUnfilled,
-			br.institution as borrower,
-			lndr.institution as lender,
-			min(shdl.ship_date) as shipDate
-			from {table_prefix}_bibliography bl
-			left join {table_prefix}_ship_date shdl on bl.request_number = shdl.request_number
-			left join {table_prefix}_patron_type pt on bl.patron_type = pt.patron_type
-			left join {table_prefix}_institution br on bl.borrower = br.library_id
-			left join {table_prefix}_institution lndr on bl.lender = lndr.library_id
-			left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
-			where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
-			group by bl.request_number
-		'''	 /*and cn.holdings_seq=1*/
-
+		
 		//-------------2. Multiple Items Data Dump [System-Wide] report query-------------------------
 		dataDumpMultipleItems = '''
 		select bl.title,
@@ -100,23 +70,6 @@ queries{
 			group by {lib_role} WITH ROLLUP
 		'''
 		
-		/*turnaroundPerLibrary = '''
-			select IFNULL({lib_role},-1) as {lib_role}, AVG( DATEDIFF(process_date, ship_date)) as turnaroundShpRec, 
-			AVG(DATEDIFF(ship_date, request_date))as turnaroundReqShp, 
-			AVG(DATEDIFF(process_date, request_date)) as turnaroundReqRec
-			from 
-			(select bl.request_number, 
-					bl.{lib_role}, 
-					bl.request_date, 
-					bl.process_date, 
-					min(bshl.ship_date) as ship_date
-			from  {table_prefix}_bibliography bl 
-			left join {table_prefix}_ship_date bshl on bl.request_number = bshl.request_number 
-			where request_date between ? and ? and NOT (supplier_code <=> 'List Exhausted') and NOT (bl.borrower <=> bl.lender) {add_condition}
-			group by bl.request_number ) sub_data
-			group by {lib_role} WITH ROLLUP
-		'''*/
-
 		/**
 		* for fillRate in Borrowing
 		*/
@@ -208,17 +161,6 @@ queries{
 		from {table_prefix}_bibliography b where NOT (supplier_code <=> 'List Exhausted') and NOT (borrower <=> lender) 
 		{add_condition} group by fiscal_year, b.{lib_role} WITH ROLLUP
 		'''
-
-		/*historicalCountsPerLibAll = '''
-		select IFNULL({lib_role},-1) as {lib_role},
-		CASE WHEN MONTH(request_date)>={fy_start_month} THEN YEAR(request_date)+1
-		ELSE YEAR(request_date) END AS fiscal_year,
-		count(*) as requestsNum
-		from {table_prefix}_bibliography where NOT (borrower <=> lender) 
-		{add_condition}
-		group by fiscal_year, {lib_role} WITH ROLLUP
-		'''
-		*/
 		
 		/**
 		* for fillRate in Borrowing
@@ -292,15 +234,6 @@ queries{
 			count(distinct bl.request_number) as requestsNum from {table_prefix}_bibliography bl inner join {table_prefix}_print_date pd on bl.request_number = pd.request_number
 			where pd.library_id = ? and NOT (borrower <=> lender) group by fiscal_year
 		'''
-		
-		/*historicalCountsPerLibraryUnfilled = '''
-		select IFNULL(borrower,-1) as borrower, 
-		CASE WHEN MONTH(request_date)>={fy_start_month} THEN YEAR(request_date)+1
-		ELSE YEAR(request_date) END AS fiscal_year,
-		count(distinct bl.request_number) as requestsNum 
-		from {table_prefix}_bibliography bl inner join {table_prefix}_print_date pd on bl.request_number = pd.request_number
-		where supplier_code = 'List Exhausted' and pd.library_id = ? and borrower != pd.library_id group by fiscal_year, borrower WITH ROLLUP;
-		'''*/
 		
 		//-----------------General--------------------
 		libraryList = '''select * from {table_prefix}_institution {add_condition} order by institution'''
