@@ -28,4 +28,12 @@ grails.project.dependency.resolution = {
          runtime 'mysql:mysql-connector-java:5.1.13'
 		 compile 'org.apache.poi:poi-ooxml:3.8-beta3' 
     }
+
+    plugins {
+        build (":tomcat:$grailsVersion") {
+            export = false
+        }
+        compile ":calendar:1.2.1"
+        runtime ":hibernate:$grailsVersion"
+    }
 }
