@@ -239,7 +239,7 @@ class LibReportCommand {
 	int lr_to_day = -1
 	
 	int reportType = 0
-	def sortBy
+	String sortBy
 	
 	def lr_from_value;
 	def lr_to_value;
