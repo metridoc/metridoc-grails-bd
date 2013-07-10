@@ -3,7 +3,8 @@ package metridoc.penn.bd
 import edu.upennlib.collmanagement.CallNoService;
 import edu.upennlib.collmanagement.CallNoService.CallNoCounts;
 import groovy.sql.GroovyResultSetExtension;
-import groovy.sql.Sql;
+import groovy.sql.Sql
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -267,8 +268,18 @@ class BorrowDirectService {
 		def libData = getLibDataMapHistorical(libId, result)
 		def currentMap = libData.get(keyForSection)
 		int currentKey = year != null ? year : -1
-		
-		int filledReqs = currentMap.items.get(currentKey);
+        def log = LoggerFactory.getLogger(BorrowDirectService)
+
+        log.error("""
+            current key is $currentKey
+            current map is $currentMap
+            libId is $libId
+            requestNum is $requestsNum
+            keyForSection is $keyForSection
+            result is $result
+        """)
+
+        Integer filledReqs = currentMap.items.get(currentKey);
 		if( filledReqs == null){
 			filledReqs = 0;
 		}
