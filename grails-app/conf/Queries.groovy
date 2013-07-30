@@ -28,7 +28,7 @@ queries{
 		left join {table_prefix}_institution br on bl.borrower = br.library_id
 		left join {table_prefix}_institution lndr on bl.lender = lndr.library_id
 		left join {table_prefix}_call_number cn on bl.request_number = cn.request_number
-		where bl.request_date between ? and ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
+		where bl.request_date >= ? and bl.request_date < ? and (bl.borrower = ? or bl.lender = ?) and NOT (bl.borrower <=> bl.lender)
 		group by bl.request_number
 		''' //group by because of non unique {table_prefix}_call_number per request_number 
 		
