@@ -1,18 +1,16 @@
 package metridoc.penn.bd
 
 import edu.upennlib.collmanagement.BucketService;
-import edu.upennlib.collmanagement.CallNoService.CallNoCounts;
-
-import metridoc.penn.util.DateUtil;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
+import edu.upennlib.collmanagement.CallNoService.CallNoCounts
+import groovy.sql.GroovyRowResult;
+import metridoc.penn.util.DateUtil
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 import org.codehaus.groovy.grails.validation.Validateable;
 
 class BdEzbController {
 	def borrowDirectService
 	def serviceKey = BorrowDirectService.BD_SERVICE_KEY;
+    private static final BORROW_DIRECT_INST_BLACK_LIST = ["CRL"]
 	
 	private getIndexPageModel(){
 		return [sortByOptions:LibReportCommand.sortByOptions, 
@@ -24,7 +22,13 @@ class BdEzbController {
 	
     def index(){ 
 		def model = getIndexPageModel() 
-		render(view:'/bd_ezb/index', model:model)
+		if(serviceKey == BorrowDirectService.BD_SERVICE_KEY) {
+            List libraries = model.libraries
+            model.libraries = libraries.findAll {GroovyRowResult result ->
+                !BORROW_DIRECT_INST_BLACK_LIST.contains(result.institution)
+            }
+        }
+        render(view:'/bd_ezb/index', model:model)
 	}
 	
 	def data_dump( DataDumpCommand cmd ){
