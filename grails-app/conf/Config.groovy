@@ -14,8 +14,8 @@
 
 
 grails.config.locations = [ Queries,
-	                             "file:${userHome}/.grails/BdDataSource.groovy",
-								 "file:${userHome}/.grails/BdPasswords.groovy"]
+	                             "file:${userHome}/.metridoc/MetridocConfig.groovy"]
+
 	
 grails.project.groupId = appName
 grails.mime.file.extensions = true
