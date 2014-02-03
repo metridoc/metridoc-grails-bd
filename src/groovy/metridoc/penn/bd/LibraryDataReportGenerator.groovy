@@ -51,7 +51,8 @@ class LibraryDataReportGenerator {
 		"ISBN",
 		"OCLC",
 		"LCCN",
-		"CALL NUMBER"];
+		"CALL NUMBER",
+        "LOCAL_ITEM_FOUND"];
 	
 	private Workbook workbook;
 	private Sheet sheet;

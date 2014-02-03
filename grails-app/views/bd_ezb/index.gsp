@@ -121,7 +121,7 @@
 						<div class='formRow'>
 						Specify Dates: From: <g:render
 									template="/bd_ezb/date_chooser"
-									model="[currentYear:currentYear, fieldNamePrefix:'ddm_from', commandBean: dataDumpMultCommand, minYear:minCalYear, , dateFormat:dateFormat]" />
+									model="[currentYear:currentYear, fieldNamePrefix:'ddm_from', commandBean: dataDumpMultCommand, minYear:minCalYear, dateFormat:dateFormat]" />
 								To: <g:render
 									template="/bd_ezb/date_chooser"
 									model="[currentYear:currentYear, fieldNamePrefix:'ddm_to', commandBean: dataDumpMultCommand, minYear:minCalYear, dateFormat:dateFormat]" /> </div>
