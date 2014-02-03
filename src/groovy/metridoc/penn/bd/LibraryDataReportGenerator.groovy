@@ -118,6 +118,8 @@ class LibraryDataReportGenerator {
 		addCell(row, currentRowData.lccn);
 		//call number
 		addCell(row, currentRowData.isUnfilled == 0 ? currentRowData.callNumber:currentRowData.callNumberUnf);
+        //local item found
+        addCell(row, currentRowData.localItemFound)
 		currentRowIndex++;
 	}
 }
